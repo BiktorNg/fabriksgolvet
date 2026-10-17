@@ -39,16 +39,19 @@ kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:v
 .grp{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
 .grp .gl{font-family:var(--head);font-size:10px;color:var(--muted);padding-left:2px}
 .grp .gb{display:flex;gap:6px}
-.tool{display:flex;flex-direction:column;align-items:center;gap:1px;width:86px;padding:4px 3px 3px;position:relative;flex-shrink:0}
+.tool{display:flex;flex-direction:column;align-items:center;gap:1px;width:78px;padding:4px 3px 3px;position:relative;flex-shrink:0}
 .tool img{width:32px;height:32px;image-rendering:pixelated}
 .tool .tn{font-size:11.5px;line-height:1.05;white-space:normal;text-align:center;min-height:2.1em;display:flex;align-items:center}
-.tool .tc{font-family:var(--num);font-size:17px;line-height:1;letter-spacing:.02em;color:var(--money);font-variant-numeric:tabular-nums}
+.tool .tc{font-family:var(--num);font-size:17px;line-height:1;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%;color:var(--money);font-variant-numeric:tabular-nums}
 .tool kbd{position:absolute;top:2px;left:2px;margin:0}
+.tool .var{position:absolute;top:2px;right:3px;font-family:var(--num);font-size:15px;line-height:1;color:var(--blue)}
 .tool.on{background:#6e5a1a;box-shadow:inset 2px 2px 0 var(--gold),inset -2px -3px 0 rgba(0,0,0,.5),0 0 0 2px var(--edge)}
 .tool.poor .tc{color:var(--bad)}
 .tool.lock{opacity:.6}
 .tool.lock img{filter:grayscale(1) brightness(.6)}
 .tool.lock .tc{color:var(--gold)}
+@media (max-width:1320px){.tool{width:72px}.tools{gap:5px}.grp .gb{gap:5px}}
+@media (max-width:1400px){.navbtns button{padding:6px 7px}.navbtns kbd{margin-right:4px}.bar{gap:10px}.stat{padding:3px 8px}.num{font-size:23px}.money .num{font-size:26px}}
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#101114}
 #floor{display:block;position:absolute;inset:0;cursor:crosshair;touch-action:none;image-rendering:pixelated}
 .pxbox{background:var(--panel);box-shadow:inset 2px 2px 0 var(--hi),inset -2px -2px 0 var(--lo),0 0 0 3px var(--edge),6px 6px 0 rgba(0,0,0,.45)}
@@ -120,7 +123,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div class="brand">FABRIKS<br>GOLVET</div>
   <div class="stat money"><span class="lbl">Kassa</span><span id="money" class="num">0 kr</span></div>
   <div class="stat"><span class="lbl">Inkomst</span><span id="rate" class="num">0 kr/s</span></div>
-  <div class="stat"><span class="lbl">Startare på linjen</span><span id="startc" class="num">0/4</span></div>
+  <div class="stat"><span class="lbl">Startare</span><span id="startc" class="num">0/4</span></div>
   <div class="spacer"></div>
   <div class="navbtns">
     <button data-panel="mach"><kbd>M</kbd>Maskiner</button>
@@ -269,7 +272,7 @@ const STARTER_PRICE=100;const starterCost=()=>STARTER_PRICE;
 const machineCost=t=>t==='starter'?starterCost():M[t].cost;
 const inBounds=(x,y)=>x>=0&&y>=0&&x<gw()&&y<gh();
 
-let tool='select',placeDir=0,copyCfg=null,lastStarterRes='copper',lastRec=null;
+let tool='select',placeDir=0,machDir=0,copyCfg=null,lastStarterRes='copper',lastRec=null;
 let hover=null,drag=null,panning=null,sel=null,paused=false,time=0;
 const selT=new Set();let areaDrag=null,areaPress=null,clip=null,moving=null,amove=null;
 const keys=new Set(),cam={x:0,y:0,z:1},floats=[];
@@ -374,7 +377,7 @@ function accept(t,item,travel){
     case 'cable':
       if(t.d===from||t.busy||RES[item].kind!=='wire'||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
     case 'crafter1':case 'crafter2':case 'crafter3':{
-      if(t.d===from||!t.cfg.rec)return false;const need=RECMAP[t.cfg.rec].in[item];
+      if(t.d===from||!t.cfg.rec||RECMAP[t.cfg.rec].tier>M[t.t].mk)return false;const need=RECMAP[t.cfg.rec].in[item];
       if(!need){t.wrong=item;t.wrongAt=time;return false;}if((t.buf[item]||0)>=need*2)return false;t.buf[item]=(t.buf[item]||0)+1;return true;}
     case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':case 'lsel':case 'rsel':case 'msel':
       if(from!==back||t.hold)return false;t.hold=item;t.timer=0;return true;
@@ -405,7 +408,7 @@ function stepLine(line,dt){
         if(t.busy){t.timer+=dt;if(t.timer>=mTime('cable')){t.q=RES[t.cb[0]].base+'_cable';t.cb=[];t.busy=false;}}
         if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'crafter1':case 'crafter2':case 'crafter3':{
-        const r=t.cfg.rec&&RECMAP[t.cfg.rec];
+        const r=t.cfg.rec&&RECMAP[t.cfg.rec]&&RECMAP[t.cfg.rec].tier<=M[t.t].mk?RECMAP[t.cfg.rec]:null;
         if(r&&!t.q&&!t.busy){let ok=true;for(const k in r.in)if((t.buf[k]||0)<r.in[k]){ok=false;break;}if(ok){for(const k in r.in)t.buf[k]-=r.in[k];t.busy=true;t.timer=0;t.making=r.id;}}
         if(t.busy){t.timer+=dt;if(t.timer>=ct){t.busy=false;t.q=t.making;}}
         if(t.q&&push(t,t.q,t.d))t.q=null;break;}
@@ -488,10 +491,12 @@ function render(){
   for(let i=0;i<bw;i+=12){P(g,i,-6,(i/12)%2?K:Y,12,6);P(g,i,bh,(i/12)%2?K:Y,12,6);}
   for(let i=0;i<bh;i+=12){P(g,-6,i,(i/12)%2?K:Y,6,12);P(g,bw,i,(i/12)%2?K:Y,6,12);}
   const grid=L().grid;
-  for(const t of grid.values())if(t.t==='roller')drawTile(g,t,true);
-  for(const t of grid.values())if(t.t!=='roller')drawTile(g,t,true);
+  const vx0=Math.floor((cam.x-W/2/cam.z)/TS)-1,vy0=Math.floor((cam.y-H/2/cam.z)/TS)-1,vx1=Math.ceil((cam.x+W/2/cam.z)/TS)+1,vy1=Math.ceil((cam.y+H/2/cam.z)/TS)+1;
+  const vis=[];for(const t of grid.values())if(t.x>=vx0&&t.x<=vx1&&t.y>=vy0&&t.y<=vy1)vis.push(t);
+  for(const t of vis)if(t.t==='roller')drawTile(g,t,true);
+  for(const t of vis)if(t.t!=='roller')drawTile(g,t,true);
   const isz=21;
-  for(const t of grid.values())if(t.t==='roller')for(const it of t.its){
+  for(const t of vis)if(t.t==='roller')for(let ii=0,step=Math.max(1,Math.ceil(t.its.length/8));ii<t.its.length;ii+=step){const it=t.its[ii];
     const p=it.prog,e=DIRS[it.from],o=DIRS[t.d],cx=t.x*TS+TS/2,cy=t.y*TS+TS/2;let px,py;
     if(p<.5){const f=p*2;px=cx+e[0]*TS/2*(1-f);py=cy+e[1]*TS/2*(1-f);}else{const f=(p-.5)*2;px=cx+o[0]*TS/2*f;py=cy+o[1]*TS/2*f;}
     drawIt(g,it.item,px,py,isz);}
@@ -530,28 +535,43 @@ function buildToolbar(){
    `<button class="tool" data-tool="select"><kbd>Q</kbd><img alt="" src="${toolIcon('select')}"><span class="tn">Välj</span><span class="tc">&nbsp;</span></button>`+
    `<button class="tool" data-tool="area"><kbd>V</kbd><img alt="" src="${toolIcon('area')}"><span class="tn">Markera</span><span class="tc">&nbsp;</span></button>`+
    `<button class="tool" data-tool="demolish"><kbd>X</kbd><img alt="" src="${toolIcon('x')}"><span class="tn">Riv</span><span class="tc">&nbsp;</span></button></div></div>`;
-  for(const[gname,list]of GROUPS){h+=`<div class="grp"><span class="gl">${gname}</span><div class="gb">`;
-    for(const t of list)h+=`<button class="tool" data-tool="${t}" title="${M[t].d}"><kbd>${M[t].key}</kbd><img alt="" src="${machIcon(t)}"><span class="tn">${M[t].n}</span><span class="tc" id="tc-${t}"></span></button>`;
+  for(const[gname,slots]of SLOT_GROUPS){h+=`<div class="grp"><span class="gl">${gname}</span><div class="gb">`;
+    for(const i of slots){const v=SLOTS[i];h+=`<button class="tool" data-slot="${i}"><kbd>${M[v[0]].key}</kbd>${v.length>1?`<span class="var" id="sv-${i}"></span>`:''}<img alt="" id="si-${i}"><span class="tn" id="sn-${i}"></span><span class="tc" id="sc-${i}"></span></button>`;}
     h+=`</div></div>`;}
   toolsEl.innerHTML=h;refreshToolbar();
 }
+const SLOTS=[['starter'],['seller'],['wire'],['furnace'],['cutter'],['press'],['cable'],['crafter1','crafter2','crafter3'],['roller'],['splitter','lsplit','rsplit','asplit'],['lsel','rsel','msel'],['tin','tout']];
+const SLOT_GROUPS=[['Produktion',[0,1,2,3,4,5,6,7]],['Transport',[8,9,10,11]]];
+const slotCur=SLOTS.map(v=>v[0]);
+const slotOf=t=>SLOTS.findIndex(v=>v.includes(t));
+function slotPick(i){const v=SLOTS[i],un=v.filter(t=>S.unl[t]);
+  if(!un.length){openPanel('mach');toast(M[v[0]].n+' är låst. Lås upp den här.');return;}
+  if(v.includes(tool)){const j=un.indexOf(tool);setTool(un[(j+1)%un.length]);}
+  else setTool(S.unl[slotCur[i]]?slotCur[i]:un[0]);}
 function refreshToolbar(){
-  for(const t of ALLM){const el=$('tc-'+t);if(!el)continue;const b=el.parentElement,un=S.unl[t];b.classList.toggle('lock',!un);
-    if(!un){el.textContent='🔒 '+fmt(M[t].unlock);b.classList.remove('poor');}
+  for(let i=0;i<SLOTS.length;i++){const el=$('sc-'+i);if(!el)continue;const v=SLOTS[i];
+    let t=slotCur[i];if(!S.unl[t]){const u=v.find(x=>S.unl[x]);if(u)t=slotCur[i]=u;}
+    const b=el.parentElement,un=S.unl[t];
+    if(b.dataset.show!==t){b.dataset.show=t;$('si-'+i).src=machIcon(t);$('sn-'+i).textContent=M[t].n;b.title=M[t].d+(v.length>1?' Klicka igen eller tryck '+M[t].key+' för nästa variant.':'');}
+    if(v.length>1){const n=v.filter(x=>S.unl[x]).length;$('sv-'+i).textContent=n>1?(v.indexOf(t)+1)+'/'+v.length:'';}
+    b.classList.toggle('lock',!un);b.classList.toggle('on',v.includes(tool));
+    if(!un){el.textContent=fmt(M[t].unlock);b.classList.remove('poor');}
     else{const c=machineCost(t);el.textContent=fmt(c)+' kr';b.classList.toggle('poor',S.money<c||(t==='starter'&&starterCount()>=maxStarters()));}}
 }
-toolsEl.addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(!b)return;const t=b.dataset.tool;
-  if(M[t]&&!S.unl[t]){openPanel('mach');toast(M[t].n+' är låst. Lås upp den här.');return;}setTool(t);});
+toolsEl.addEventListener('click',e=>{const s=e.target.closest('[data-slot]');if(s){slotPick(+s.dataset.slot);return;}
+  const b=e.target.closest('[data-tool]');if(!b)return;setTool(b.dataset.tool);});
+for(const bar of document.querySelectorAll('.bar'))bar.addEventListener('wheel',e=>{if(bar.scrollWidth>bar.clientWidth&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){bar.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
 function setTool(t){
   if(M[t]&&copyCfg&&copyCfg.t!==t)copyCfg=null;
   if(t!=='area'&&t!=='paste'){selT.clear();}
-  tool=t;for(const b of toolsEl.querySelectorAll('.tool'))b.classList.toggle('on',b.dataset.tool===t||(t==='paste'&&b.dataset.tool==='area'));
+  if(t!=='roller'&&tool==='roller')placeDir=machDir;else if(t==='roller'&&tool!=='roller')machDir=placeDir;
+  tool=t;const si=slotOf(t);if(si>=0)slotCur[si]=t;
+  for(const b of toolsEl.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===t||(t==='paste'&&b.dataset.tool==='area'));if(toolsEl.querySelector('[data-slot]'))refreshToolbar();
+  const ob=toolsEl.querySelector('.tool.on');if(ob)ob.scrollIntoView({block:'nearest',inline:'nearest'});
   canvas.style.cursor=t==='select'?'default':'crosshair';updateHint();updateAreabar();
 }
 function cycleKey(k){
-  const list=ALLM.filter(t=>M[t].key.toLowerCase()===k);if(!list.length)return false;
-  const un=list.filter(t=>S.unl[t]);if(!un.length){openPanel('mach');toast(M[list[0]].n+' är låst. Lås upp den här.');return true;}
-  const i=un.indexOf(tool);setTool(un[(i+1)%un.length]);return true;
+  const i=SLOTS.findIndex(v=>M[v[0]].key.toLowerCase()===k);if(i<0)return false;slotPick(i);return true;
 }
 const DN=['höger','ned','vänster','upp'];
 function updateHint(){
@@ -649,7 +669,8 @@ function updateLive(){
     case 'msel':h=`${RES[c.l].n} åt vänster<br>${RES[c.r].n} åt höger`;break;
     case 'tin':{const n=[...t.line.grid.values()].filter(o=>o.t==='tout'&&o.cfg.ch===c.ch).length;h=`Skickar till ${n} transportör ut med nummer ${c.ch}`+(n?'':'<br><span class="warn">Ingen mottagare</span>');break;}
     case 'tout':h=`Tar emot från nummer ${c.ch}`;break;
-    case 'roller':h=`${fmt2(beltSpeed())} rutor/s`;break;
+    case 'roller':{h=`${fmt2(beltSpeed())} rutor/s · ${t.its.length} saker`;const stuck=t.its.filter(a=>a.prog>=1);if(stuck.length){const n=nbr(t,t.d);
+      h+='<br><span class="warn">'+(!n?'Bandet slutar här. Inget tar emot.':['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&n.d!==t.d?M[n.t].n+' tar bara emot bakifrån.':n.t==='roller'&&(n.d+2)%4===t.d?'Nästa band pekar tillbaka hit.':M[n.t].n+' tar inte emot '+RES[stuck[0].item].n+' just nu.')+'</span>';}break;}
   }
   el.innerHTML=h;
 }
@@ -667,7 +688,7 @@ insp.addEventListener('click',e=>{
   else if(a==='ch')t.cfg.ch=+v;
   renderInspector();
 });
-function copyFrom(t){copyCfg={t:t.t,cfg:JSON.parse(JSON.stringify(t.cfg))};placeDir=t.d;if(t.t==='starter')lastStarterRes=t.cfg.res;setTool(t.t);toast('Kopierade '+M[t.t].n,true);}
+function copyFrom(t){copyCfg={t:t.t,cfg:JSON.parse(JSON.stringify(t.cfg))};setTool('select');placeDir=t.d;if(t.t==='starter')lastStarterRes=t.cfg.res;setTool(t.t);toast('Kopierade '+M[t.t].n,true);}
 
 /* lines */
 function renderLines(){
@@ -675,7 +696,7 @@ function renderLines(){
   if(S.lines.length<LINE_COST.length)h+=`<button class="linetab gold" data-newline="1" data-cost="${LINE_COST[S.lines.length]}">+ Ny linje · ${fmt(LINE_COST[S.lines.length])} kr</button>`;
   h+=landLv()<LAND_MAX?`<button class="linetab gold" data-land="1" data-cost="${landCost()}">Större yta på linje ${S.cur+1} · ${12+3*(landLv()+1)}×${8+2*(landLv()+1)} · ${fmt(landCost())} kr</button>`:`<button class="linetab" disabled>Linje ${S.cur+1} har största ytan</button>`;
   h+=`<button class="linetab" data-clearitems="1" title="Tar bort alla saker på band och i maskiner på linjen">Töm alla band på linje ${S.cur+1}</button>`;
-  h+=`<span class="spacer"></span><span style="color:var(--muted);font-size:13px"><kbd>L</kbd>byt linje · alla linjer går samtidigt</span>`;
+  h+=`<span class="spacer"></span><span style="color:var(--muted);font-size:13px;white-space:nowrap"><kbd>L</kbd>byt linje</span>`;
   linesEl.innerHTML=h;
 }
 linesEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
