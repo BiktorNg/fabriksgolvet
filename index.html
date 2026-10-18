@@ -116,6 +116,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
 #hint{position:absolute;left:max(14px,env(safe-area-inset-left,0px));bottom:12px;padding:5px 10px;font-size:13px;color:var(--muted);pointer-events:none;max-width:calc(100% - 28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hint b{color:var(--ink)}
 #areabar{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);padding:8px 10px;display:flex;gap:8px;align-items:center;white-space:nowrap}
+#ver{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:4px;font-family:var(--num);font-size:14px;color:var(--muted);opacity:.35;pointer-events:none;letter-spacing:.04em}
 #paused{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--head);font-size:56px;color:var(--gold);text-shadow:4px 4px 0 #000}
 </style>
 
@@ -140,6 +141,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="hint" class="pxbox"></div>
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
+  <div id="ver">v2.4</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
