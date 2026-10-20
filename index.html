@@ -153,7 +153,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="hint" class="pxbox"></div>
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
-  <div id="ver">v2.8</div>
+  <div id="ver">v2.9</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -221,11 +221,11 @@ for(const k in RAW){
 const RAD={uranium:{n:'Uran',v:400,c:'#7be35a'},plutonium:{n:'Plutonium',v:700,c:'#c46bff'}};
 const RAD_UNLOCK={uranium:0,plutonium:75e6};
 for(const k in RAD)RES[k]={n:RAD[k].n,v:RAD[k].v,c:RAD[k].c,kind:'rad',base:k};
-RES.energy={n:'Energicell',v:60,kind:'energy'};
-RES.enriched_u={n:'Anrikat uran',v:1800,c:'#c8ff3a',kind:'rad2',base:'uranium'};RES.pure_pu={n:'Renat plutonium',v:3000,c:'#ff6bf0',kind:'rad2',base:'plutonium'};
+RES.energy={n:'Energicell',v:360,kind:'energy'};
+RES.enriched_u={n:'Anrikat uran',v:2000,c:'#c8ff3a',kind:'rad2',base:'uranium'};RES.pure_pu={n:'Renat plutonium',v:3300,c:'#ff6bf0',kind:'rad2',base:'plutonium'};
 RES.waste={n:'Radioaktivt avfall',v:0,kind:'waste'};
 const CENTRI={uranium:'enriched_u',plutonium:'pure_pu'};
-const REFINE={uranium:2,plutonium:3,enriched_u:7,pure_pu:10};
+const REFINE={uranium:2,plutonium:3,enriched_u:7,pure_pu:11};
 const RECIPES=[
  {id:'motor',n:'Motor',tier:1,in:{iron_gear:2,copper_wire:1},cost:3000},
  {id:'circuit',n:'Kretskort',tier:1,in:{copper_wire:2,gold_plate:1},cost:8000},
@@ -267,7 +267,7 @@ const M={
  crafter4:{n:'Radioaktiv hantverkare MK1',key:'9',unlock:60e6,cost:5e6,mk:4,rad:1,d:'Klarar ritningar upp till nivå 4. Behöver energiceller för radioaktiva ritningar och lagrar upp till 20 energi.'},
  crafter5:{n:'Radioaktiv hantverkare MK2',key:'9',unlock:250e6,cost:15e6,mk:5,rad:1,d:'Klarar alla ritningar. Behöver energiceller för radioaktiva ritningar och lagrar upp till 20 energi.'},
  radstarter:{n:'Radioaktiv startare',key:'2',unlock:25e6,cost:1e6,d:'Skapar uran eller plutonium. Räknas mot gränsen för startare.'},
- refinery:{n:'Raffinaderi',key:'8',unlock:40e6,cost:2e6,d:'Gör energiceller: uran 2 st, plutonium 3 st, anrikat uran 7 st, renat plutonium 10 st.'},
+ refinery:{n:'Raffinaderi',key:'8',unlock:40e6,cost:2e6,d:'Gör energiceller: uran 2 st, plutonium 3 st, anrikat uran 7 st, renat plutonium 11 st.'},
  centrifuge:{n:'Centrifug',key:'8',unlock:50e6,cost:3e6,d:'Anrikar 3 uran till anrikat uran, eller 3 plutonium till renat plutonium. Varje körning kostar 1 energicell och den lagrar upp till 10.'},
  recycler:{n:'Återvinnare',key:'8',unlock:90e6,cost:4e6,d:'Gör om 4 radioaktivt avfall till 1 plutonium.'},
  disposal:{n:'Slutförvar',key:'3',unlock:5e6,cost:200000,d:'Tar emot radioaktivt avfall från alla håll och gör sig av med det. Tar inte emot något annat.'},
