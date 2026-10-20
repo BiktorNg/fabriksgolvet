@@ -34,7 +34,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 button.gold{background:#a7801a;box-shadow:inset 2px 2px 0 #e0b23a,inset -2px -3px 0 rgba(0,0,0,.45),0 0 0 2px var(--edge);color:#fff6d8}
 button.red{background:#8a3a30;box-shadow:inset 2px 2px 0 #b8564a,inset -2px -3px 0 rgba(0,0,0,.45),0 0 0 2px var(--edge)}
 kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:var(--gold);padding:0 4px;margin-right:6px;box-shadow:inset -1px -2px 0 #333}
-.linetab{padding:4px 12px;font-size:14px}
+.linetab{padding:4px 10px;font-size:14px}
+.lsep{width:2px;align-self:stretch;background:var(--edge);flex-shrink:0}
 .linetab.on{background:#a7801a;box-shadow:inset 2px 2px 0 #e0b23a,inset -2px -3px 0 rgba(0,0,0,.45),0 0 0 2px var(--edge)}
 .grp{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
 .grp .gl{font-family:var(--head);font-size:10px;color:var(--muted);padding-left:2px}
@@ -152,7 +153,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="hint" class="pxbox"></div>
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
-  <div id="ver">v2.7</div>
+  <div id="ver">v2.8</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -740,7 +741,7 @@ function undoRedo(from,to,word){
   const sn=from[from.length-1];if(sn.line!==S.cur)switchLine(sn.line);
   const cur=snap();if(!restoreSnap(sn))return;from.pop();to.push(cur);toast(word,true);updateAreabar();renderUndo();}
 const undo=()=>undoRedo(undoSt,redoSt,'Ångrade'),redo=()=>undoRedo(redoSt,undoSt,'Gjorde om');
-function renderUndo(){const u=$('undo'),r=$('redo');if(u)u.disabled=!undoSt.length;if(r)r.disabled=!redoSt.length;}
+function renderUndo(){const u=$('undo'),r=$('redo');if(u)u.disabled=!undoSt.length;if(r)r.disabled=!redoSt.length;const rs=$('rstspd');if(rs){let any=false;for(const t of L().grid.values())if(t.cfg.spd!=null){any=true;break;}rs.disabled=!any;}}
 
 /* inspector */
 function openInspector(t){sel=t;renderInspector();}
@@ -837,14 +838,16 @@ function copyFrom(t){copyCfg={t:t.t,cfg:JSON.parse(JSON.stringify(t.cfg))};setTo
 function renderLines(){
   let h=S.lines.map((l,i)=>`<button class="linetab${i===S.cur?' on':''}" data-line="${i}">Linje ${i+1}</button>`).join('');
   if(S.lines.length<LINE_COST.length)h+=`<button class="linetab gold" data-newline="1" data-cost="${LINE_COST[S.lines.length]}">+ Ny linje · ${fmt(LINE_COST[S.lines.length])} kr</button>`;
-  h+=landLv()<LAND_MAX?`<button class="linetab gold" data-land="1" data-cost="${landCost()}">Större yta på linje ${S.cur+1} · ${12+3*(landLv()+1)}×${8+2*(landLv()+1)} · ${fmt(landCost())} kr</button>`:`<button class="linetab" disabled>Linje ${S.cur+1} har största ytan</button>`;
-  h+=`<button class="linetab" id="undo" data-undo="1" title="Ctrl+Z"><kbd>Ctrl+Z</kbd>Ångra</button><button class="linetab" id="redo" data-redo="1" title="Ctrl+Y">Gör om</button>`;
-  h+=`<button class="linetab" data-clearitems="1" title="Tar bort alla saker på band och i maskiner på linjen">Töm alla band på linje ${S.cur+1}</button>`;
-  h+=`<span class="spacer"></span><span style="color:var(--muted);font-size:13px;white-space:nowrap"><kbd>L</kbd>byt linje</span>`;
+  h+=landLv()<LAND_MAX?`<button class="linetab gold" data-land="1" data-cost="${landCost()}" title="Större yta på linje ${S.cur+1}">Större yta ${12+3*(landLv()+1)}×${8+2*(landLv()+1)} · ${fmt(landCost())} kr</button>`:`<button class="linetab" disabled>Största ytan</button>`;
+  h+=`<span class="lsep"></span><button class="linetab" id="undo" data-undo="1" title="Ctrl+Z">Ångra</button><button class="linetab" id="redo" data-redo="1" title="Ctrl+Y">Gör om</button>`;
+  h+=`<span class="lsep"></span><button class="linetab" data-clearitems="1" title="Tar bort alla saker på band och i maskiner på den här linjen">Töm band</button>`;
+  h+=`<button class="linetab" id="rstspd" data-resetline="1" title="Alla maskiner på den här linjen kör så snabbt som uppgraderingarna tillåter">Återställ hastigheter</button>`;
+  h+=`<span class="spacer"></span>`;
   linesEl.innerHTML=h;renderUndo();
 }
 linesEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.undo){undo();return;}if(b.dataset.redo){redo();return;}
+  if(b.dataset.resetline){edit(()=>{let n=0;for(const t of L().grid.values())if(t.cfg.spd!=null){delete t.cfg.spd;n++;}toast(n?'Linje '+(S.cur+1)+': '+n+' maskiner kör nu så snabbt som möjligt':'Inga anpassade hastigheter på linjen',!!n);});if(sel)renderInspector();return;}
   if(b.dataset.clearitems){clearTiles([...L().grid.values()],'Linje '+(S.cur+1));return;}
   if(b.dataset.line!==undefined)switchLine(+b.dataset.line);
   else if(b.dataset.land){const c=landCost();if(landLv()>=LAND_MAX)return;if(S.money<c){toast('Inte råd: större yta kostar '+fmt(c)+' kr');return;}S.money-=c;L().land=landLv()+1;toast('Linje '+(S.cur+1)+' är nu '+gw()+' × '+gh()+' rutor',true);renderLines();centerCam();}
