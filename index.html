@@ -56,6 +56,10 @@ kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:v
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#101114}
 #floor{display:block;position:absolute;inset:0;cursor:crosshair;touch-action:none;image-rendering:pixelated}
 .pxbox{background:var(--panel);box-shadow:inset 2px 2px 0 var(--hi),inset -2px -2px 0 var(--lo),0 0 0 3px var(--edge),6px 6px 0 rgba(0,0,0,.45)}
+#zoom{position:absolute;left:max(14px,env(safe-area-inset-left,0px));bottom:56px;display:flex;flex-direction:column;gap:8px;align-items:center}
+#zoom button{width:40px;height:38px;padding:0;font-size:24px;line-height:1;font-weight:700}
+#zoom button.small{height:30px;font-size:12px}
+#zoom .zl{font-family:var(--num);font-size:15px;color:var(--muted);text-shadow:1px 1px 0 #000}
 #insp{position:absolute;top:14px;right:14px;width:320px;max-width:calc(100% - 28px);max-height:calc(100% - 28px);overflow:auto;padding:12px}
 .ih{display:flex;gap:10px;align-items:flex-start}
 .ih img{width:48px;height:48px;image-rendering:pixelated;flex-shrink:0}
@@ -153,7 +157,8 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="hint" class="pxbox"></div>
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
-  <div id="ver">v2.10</div>
+  <div id="zoom"><button id="zin" title="Zooma in (+)" aria-label="Zooma in">+</button><span class="zl" id="zlv">100%</span><button id="zout" title="Zooma ut (−)" aria-label="Zooma ut">−</button><button id="zfit" class="small" title="Visa hela linjen (mellanslag)" aria-label="Visa hela linjen">Hela</button></div>
+  <div id="ver">v2.11</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -995,6 +1000,8 @@ function dragTo(tx,ty){
 }
 canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?1.12:1/1.12,e.clientX-r.left,e.clientY-r.top);},{passive:false});
 function zoomAt(f,sx,sy){const wx=(sx-W/2)/cam.z+cam.x,wy=(sy-H/2)/cam.z+cam.y;cam.z=Math.min(3,Math.max(.35,cam.z*f));cam.x=wx-(sx-W/2)/cam.z;cam.y=wy-(sy-H/2)/cam.z;clampCam();}
+$('zin').addEventListener('click',()=>zoomAt(1.2,W/2,H/2));$('zout').addEventListener('click',()=>zoomAt(1/1.2,W/2,H/2));$('zfit').addEventListener('click',()=>centerCam());
+for(const id of ['zin','zout','zfit'])$(id).addEventListener('pointerdown',e=>e.stopPropagation());
 function clampCam(){cam.x=Math.min(GWMAX*TS,Math.max(0,cam.x));cam.y=Math.min(GHMAX*TS,Math.max(0,cam.y));}
 function centerCam(){cam.x=gw()*TS/2;cam.y=gh()*TS/2;const fit=Math.min((W-60)/(gw()*TS),(H-60)/(gh()*TS));cam.z=Math.min(1.75,Math.max(.4,fit||1));}
 
@@ -1077,6 +1084,7 @@ function frame(now){
   if(keys.has('w')||keys.has('arrowup'))cam.y-=pan;if(keys.has('s')||keys.has('arrowdown'))cam.y+=pan;
   if(keys.has('a')||keys.has('arrowleft'))cam.x-=pan;if(keys.has('d')||keys.has('arrowright'))cam.x+=pan;clampCam();
   render();
+  {const zl=$('zlv'),zt=Math.round(cam.z*100)+'%';if(zl.textContent!==zt)zl.textContent=zt;$('zin').disabled=cam.z>=3-1e-6;$('zout').disabled=cam.z<=.35+1e-6;}
   uiAcc+=dt;if(uiAcc>.2){uiAcc=0;$('money').textContent=fmt(S.money)+' kr';$('rate').textContent=fmt(currentRate())+' kr/s';
     $('startc').textContent=starterCount()+'/'+maxStarters();refreshToolbar();updateLive();refreshPanel();
     for(const nb of linesEl.querySelectorAll('[data-cost]'))nb.disabled=S.money<+nb.dataset.cost;renderUndo();}
