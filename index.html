@@ -152,7 +152,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="hint" class="pxbox"></div>
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
-  <div id="ver">v2.6</div>
+  <div id="ver">v2.7</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -194,6 +194,9 @@ const PROD_MAP={
  computer:["kkkkkkkk","kuuuuuuk","kuwuuuuk","kuuuuuuk","kkkkkkkk","...kk...","..kSSk..",".kkkkkk."],
  tablet:["kkkkkkkk","kduuuudk","kduwuudk","kduuuudk","kduuuudk","kduuuusk","kkkkkkkk","........"],
  robot:["...kr...",".kkkkkk.","kssssssk","ksesseSk","kssssssk","ksddddsk","kssssssk",".kkkkkk."],
+ fuelrod:["...kk...","..kSSk..","..kggk..","..kgyk..","..kggk..","..kgyk..","..kSSk..","...kk..."],
+ shield:["kkkkkkkk","kSsssssk","ksyksyks".slice(0,8),"kskyykSk","ksyykssk","kSssssSk",".kSssSk.","..kkkk.."],
+ waste:[".kkkkkk.","kyyyyyyk","kykkkkyk","kyyKyyyk".replace('K','k'),"kykykkyk","kyyyyyyk","kkkkkkkk",".k....k."],
  core:[".kkkkkk.","kSssssSk","ksgggg sk".replace(' ',''),"ksgyygsk","ksgyygsk","ksggggsk","kSssssSk",".kkkkkk."],
  fusionbat:["...kk...","..kssk..",".kppppk.",".kpyypk.",".kpyypk.",".kPPPPk.",".kPPPPk.",".kkkkkk."],
  qcomp:["kkkkkkkk","kpppPppk","kpekkepk","kpkeekpk","kpekkepk","kkkkkkkk","..kSSk..",".kkkkkk."],
@@ -218,7 +221,10 @@ const RAD={uranium:{n:'Uran',v:400,c:'#7be35a'},plutonium:{n:'Plutonium',v:700,c
 const RAD_UNLOCK={uranium:0,plutonium:75e6};
 for(const k in RAD)RES[k]={n:RAD[k].n,v:RAD[k].v,c:RAD[k].c,kind:'rad',base:k};
 RES.energy={n:'Energicell',v:60,kind:'energy'};
-const REFINE={uranium:2,plutonium:3};
+RES.enriched_u={n:'Anrikat uran',v:1800,c:'#c8ff3a',kind:'rad2',base:'uranium'};RES.pure_pu={n:'Renat plutonium',v:3000,c:'#ff6bf0',kind:'rad2',base:'plutonium'};
+RES.waste={n:'Radioaktivt avfall',v:0,kind:'waste'};
+const CENTRI={uranium:'enriched_u',plutonium:'pure_pu'};
+const REFINE={uranium:2,plutonium:3,enriched_u:7,pure_pu:10};
 const RECIPES=[
  {id:'motor',n:'Motor',tier:1,in:{iron_gear:2,copper_wire:1},cost:3000},
  {id:'circuit',n:'Kretskort',tier:1,in:{copper_wire:2,gold_plate:1},cost:8000},
@@ -233,15 +239,17 @@ const RECIPES=[
  {id:'tablet',n:'Surfplatta',tier:3,in:{phone:1,solar:1,alu_plate:2},cost:2500000},
  {id:'robot',n:'Robot',tier:3,in:{computer:1,motor:2,diamond_gear:1},cost:6000000},
  {id:'satellite',n:'Satellit',tier:3,in:{robot:1,solar:2,laser:1,gold_cable:1},cost:20000000},
- {id:'core',n:'Reaktorkärna',tier:4,in:{uranium:2,iron_plate:2,copper_cable:1},en:2,cost:30e6},
- {id:'fusionbat',n:'Fusionsbatteri',tier:4,in:{battery:2,plutonium:1},en:3,cost:50e6},
- {id:'qcomp',n:'Kvantdator',tier:4,in:{computer:1,processor:2,diamond_wire:1},en:4,cost:100e6},
- {id:'station',n:'Rymdstation',tier:5,in:{satellite:1,core:2,fusionbat:2},en:6,cost:300e6},
+ {id:'fuelrod',n:'Bränslestav',tier:4,in:{enriched_u:1,alu_plate:2},en:1,cost:20e6},
+ {id:'shield',n:'Strålskydd',tier:4,in:{gold_plate:2,iron_plate:2,alu_liquid:1},en:1,cost:25e6},
+ {id:'core',n:'Reaktorkärna',tier:4,in:{fuelrod:2,shield:1,copper_cable:1},en:2,cost:40e6},
+ {id:'fusionbat',n:'Fusionsbatteri',tier:4,in:{battery:2,pure_pu:1,shield:1},en:3,cost:60e6},
+ {id:'qcomp',n:'Kvantdator',tier:4,in:{computer:1,processor:2,diamond_wire:1,shield:1},en:4,cost:120e6},
+ {id:'station',n:'Rymdstation',tier:5,in:{satellite:1,core:2,fusionbat:2,shield:2},en:6,cost:300e6},
  {id:'android',n:'Android',tier:5,in:{robot:1,qcomp:1,fusionbat:1},en:5,cost:500e6},
- {id:'timemachine',n:'Tidsmaskin',tier:5,in:{qcomp:2,core:2,laser:2},en:8,cost:1e9}
+ {id:'timemachine',n:'Tidsmaskin',tier:5,in:{qcomp:2,core:2,laser:2,pure_pu:2},en:8,cost:1e9}
 ];
 const RECMAP={};
-for(const r of RECIPES){let s=0;for(const k in r.in)s+=RES[k].v*r.in[k];r.en=r.en||0;s+=r.en*RES.energy.v;r.v=Math.round(s*(r.tier>=4?5:1.8));RES[r.id]={n:r.n,v:r.v,kind:'product',tier:r.tier};RECMAP[r.id]=r;}
+for(const r of RECIPES){let s=0;for(const k in r.in)s+=RES[k].v*r.in[k];r.en=r.en||0;s+=r.en*RES.energy.v;r.v=Math.round(s*(r.tier>=4?3:1.8));RES[r.id]={n:r.n,v:r.v,kind:'product',tier:r.tier};RECMAP[r.id]=r;}
 
 const M={
  roller:{n:'Rullband',key:'1',unlock:0,cost:10,d:'Flyttar saker i pilens riktning. Tar emot från alla håll utom framifrån, och bär hur många saker som helst.'},
@@ -258,7 +266,10 @@ const M={
  crafter4:{n:'Radioaktiv hantverkare MK1',key:'9',unlock:60e6,cost:5e6,mk:4,rad:1,d:'Klarar ritningar upp till nivå 4. Behöver energiceller för radioaktiva ritningar och lagrar upp till 20 energi.'},
  crafter5:{n:'Radioaktiv hantverkare MK2',key:'9',unlock:250e6,cost:15e6,mk:5,rad:1,d:'Klarar alla ritningar. Behöver energiceller för radioaktiva ritningar och lagrar upp till 20 energi.'},
  radstarter:{n:'Radioaktiv startare',key:'2',unlock:25e6,cost:1e6,d:'Skapar uran eller plutonium. Räknas mot gränsen för startare.'},
- refinery:{n:'Raffinaderi',key:'8',unlock:40e6,cost:2e6,d:'Gör energiceller av uran (2 st) eller plutonium (3 st).'},
+ refinery:{n:'Raffinaderi',key:'8',unlock:40e6,cost:2e6,d:'Gör energiceller: uran 2 st, plutonium 3 st, anrikat uran 7 st, renat plutonium 10 st.'},
+ centrifuge:{n:'Centrifug',key:'8',unlock:50e6,cost:3e6,d:'Anrikar 3 uran till anrikat uran, eller 3 plutonium till renat plutonium. Varje körning kostar 1 energicell och den lagrar upp till 10.'},
+ recycler:{n:'Återvinnare',key:'8',unlock:90e6,cost:4e6,d:'Gör om 4 radioaktivt avfall till 1 plutonium.'},
+ disposal:{n:'Slutförvar',key:'3',unlock:5e6,cost:200000,d:'Tar emot radioaktivt avfall från alla håll och gör sig av med det. Tar inte emot något annat.'},
  splitter:{n:'Delare',key:'0',unlock:5000,cost:500,d:'Tar emot bakifrån. Skickar varannan sak åt vänster och varannan åt höger.'},
  lsplit:{n:'Vänsterdelare',key:'0',unlock:12000,cost:800,d:'Tar emot bakifrån. Skickar varannan sak framåt och varannan åt vänster.'},
  rsplit:{n:'Högerdelare',key:'0',unlock:12000,cost:800,d:'Tar emot bakifrån. Skickar varannan sak framåt och varannan åt höger.'},
@@ -269,7 +280,7 @@ const M={
  tin:{n:'Transportör in',key:'G',unlock:400000,cost:25000,d:'Tar emot från alla håll och skickar sakerna till transportör ut med samma nummer på linjen.'},
  tout:{n:'Transportör ut',key:'G',unlock:400000,cost:25000,d:'Släpper ut saker från transportör in med samma nummer.'}
 };
-const GROUPS=[['Produktion',['starter','seller','wire','furnace','cutter','press','cable','crafter1','crafter2','crafter3']],['Radioaktivt',['radstarter','refinery','crafter4','crafter5']],['Transport',['roller','splitter','lsplit','rsplit','asplit','lsel','rsel','msel','tin','tout']]];
+const GROUPS=[['Produktion',['starter','seller','wire','furnace','cutter','press','cable','crafter1','crafter2','crafter3']],['Radioaktivt',['radstarter','refinery','centrifuge','disposal','recycler','crafter4','crafter5']],['Transport',['roller','splitter','lsplit','rsplit','asplit','lsel','rsel','msel','tin','tout']]];
 const ALLM=GROUPS.flatMap(g=>g[1]);
 const PROC=['wire','furnace','cutter','press'];
 const fmt2=n=>n.toFixed(2).replace('.',',');
@@ -285,6 +296,7 @@ const U={
  cable:{grp:'Maskiner',n:'Snabbare kabelmaskin',req:'cable',max:10,base:20000,g:1.9,fx:l=>fmt2(3*0.85**l)+' s'},
  crafter:{grp:'Maskiner',n:'Snabbare hantverkare',req:'crafter1',max:10,base:5000,g:2,fx:l=>fmt2(3.5*0.85**l)+' s'},
  refinery:{grp:'Radioaktivt',n:'Snabbare raffinaderi',req:'refinery',max:10,base:10e6,g:1.9,fx:l=>fmt2(3*0.85**l)+' s'},
+ centri:{grp:'Radioaktivt',n:'Snabbare centrifug och återvinnare',req:'centrifuge',max:10,base:10e6,g:1.9,fx:l=>fmt2(4*0.85**l)+' s'},
  radst:{grp:'Radioaktivt',n:'Snabbare radioaktiva startare',req:'radstarter',max:10,base:8e6,g:1.9,fx:l=>fmt2(5*0.88**l)+' s per råvara'},
  night:{grp:'Fabrik',n:'Nattskift',max:5,base:5000,g:3,fx:l=>'Offline: '+(25+15*l)+' %'}
 };
@@ -300,14 +312,14 @@ const maxStarters=()=>4+2*lv('st_max');
 const beltSpeed=(l=lv('belt'))=>1.5*1.15**l;
 const mTime=(t,l=lv(t))=>t==='cable'?3*0.85**l:2*0.85**l;
 const craftTime=(l=lv('crafter'))=>3.5*0.85**l;
-const refTime=(l=lv('refinery'))=>3*0.85**l;const radInt=(l=lv('radst'))=>5*0.88**l;
-const UPK={starter:'st_time',radstarter:'radst',wire:'wire',furnace:'furnace',cutter:'cutter',press:'press',cable:'cable',crafter1:'crafter',crafter2:'crafter',crafter3:'crafter',crafter4:'crafter',crafter5:'crafter',refinery:'refinery',roller:'belt'};
+const refTime=(l=lv('refinery'))=>3*0.85**l;const centTime=(l=lv('centri'))=>4*0.85**l;const radInt=(l=lv('radst'))=>5*0.88**l;
+const UPK={starter:'st_time',radstarter:'radst',wire:'wire',furnace:'furnace',cutter:'cutter',press:'press',cable:'cable',crafter1:'crafter',crafter2:'crafter',crafter3:'crafter',crafter4:'crafter',crafter5:'crafter',refinery:'refinery',centrifuge:'centri',recycler:'centri',roller:'belt'};
 const tl=t=>{const k=UPK[t.t];if(!k)return 0;const m=lv(k),sp=t.cfg&&t.cfg.spd;return sp==null||sp>m?m:Math.max(0,sp);};
-const SPDF=type=>type==='roller'?[1.5,1.15,'rutor/s']:type==='starter'?[2,0.9,'s']:type==='radstarter'?[5,0.88,'s']:type==='refinery'?[3,0.85,'s']:type==='cable'?[3,0.85,'s']:type.startsWith('crafter')?[3.5,0.85,'s']:[2,0.85,'s'];
+const SPDF=type=>type==='roller'?[1.5,1.15,'rutor/s']:type==='starter'?[2,0.9,'s']:type==='radstarter'?[5,0.88,'s']:type==='refinery'?[3,0.85,'s']:type==='centrifuge'||type==='recycler'?[4,0.85,'s']:type==='cable'?[3,0.85,'s']:type.startsWith('crafter')?[3.5,0.85,'s']:[2,0.85,'s'];
 const spdVal=(type,l)=>{const[b,f]=SPDF(type);return b*f**l;};
 const spdLevel=(type,v)=>{const[b,f]=SPDF(type);return Math.log(v/b)/Math.log(f);};
 const fmtLv=l=>Math.abs(l-Math.round(l))<1e-6?String(Math.round(l)):l.toFixed(1).replace('.',',');
-function speedText(type,l){if(type==='roller')return fmt2(beltSpeed(l))+' rutor/s';if(isStarter(type))return fmt2(type==='starter'?spawnInt(l):radInt(l))+' s per råvara';if(type==='refinery')return fmt2(refTime(l))+' s';if(type.startsWith('crafter'))return fmt2(craftTime(l))+' s per produkt';return fmt2(mTime(type,l))+' s';}
+function speedText(type,l){if(type==='roller')return fmt2(beltSpeed(l))+' rutor/s';if(isStarter(type))return fmt2(type==='starter'?spawnInt(l):radInt(l))+' s per råvara';if(type==='refinery')return fmt2(refTime(l))+' s';if(type==='centrifuge'||type==='recycler')return fmt2(centTime(l))+' s';if(type.startsWith('crafter'))return fmt2(craftTime(l))+' s per produkt';return fmt2(mTime(type,l))+' s';}
 const priceMult=()=>1+0.1*lv('sell');
 const LAND_MAX=6;const landLv=()=>L().land||0;const gw=()=>12+3*landLv(),gh=()=>8+2*landLv();const landCost=()=>Math.round(2000*3.2**landLv());
 const upCost=k=>Math.round(U[k].base*U[k].g**lv(k));
@@ -352,6 +364,9 @@ function buildSprites(){
   SPR.cable=mkSpr(g=>{frameP(g,'#6e4466');drawMap(g,["kk.kk.kk","ck.ck.ck","kk.kk.kk","..k..k..","...kk...","..kcck..",".kcDDck.","..kkkk.."],4,4);notch(g);});
   ['#5b4a7d','#3f6d73','#7d5a32'].forEach((c,i)=>{SPR['crafter'+(i+1)]=mkSpr(g=>{frameP(g,c);P(g,4,3,K,8,9);P(g,5,4,DK,6,7);for(let j=0;j<=i;j++)P(g,5+j*2,13,Y);notch(g);});});
   SPR.radstarter=mkSpr(g=>{frameP(g,'#4a5a2a');for(let i=2;i<14;i+=2)P(g,i,2,i%4?Y:K,2,1);P(g,4,4,K,8,8);P(g,5,5,'#1f2a12',6,6);notch(g);});
+  SPR.centrifuge=mkSpr(g=>{frameP(g,'#3b5a3a');drawMap(g,["..kkkk..",".kSssSk.","kSkggkSk","kskgykSk","kskyggsk","kSkggkSk",".kSssSk.","..kkkk.."],4,4);notch(g);});
+  SPR.recycler=mkSpr(g=>{frameP(g,'#5a5a2a');drawMap(g,["...kk...","..kggk..",".kgk.gk.","kgk..kgk","kyk..kyk",".kyk.yk.","..kyyk..","...kk..."],4,4);notch(g);});
+  SPR.disposal=mkSpr(g=>{frameP(g,'#3a3a3a');drawMap(g,["kkkkkkkk","kyyyyyyk","kykkkkyk","kykyykyk","kykyykyk","kykkkkyk","kyyyyyyk","kkkkkkkk"],4,4);for(const[a,b,w,h]of[[7,0,2,2],[7,14,2,2],[0,7,2,2],[14,7,2,2]])P(g,a,b,K,w,h);});
   SPR.refinery=mkSpr(g=>{frameP(g,'#2f5f4f');drawMap(g,["..kkkk..",".kgggk..","kgyyygk.","kgyyygkk","kgggggks",".kgggk.s","..kkk..s","kkkkkkkk"],4,4);notch(g);});
   ['#4f6b2a','#6b2a5f'].forEach((c,i)=>{SPR['crafter'+(i+4)]=mkSpr(g=>{frameP(g,c);P(g,4,3,K,8,9);P(g,5,4,'#16200f',6,7);for(let j=0;j<=i;j++)P(g,5+j*2,13,'#7be35a');P(g,2,2,Y,2,2);P(g,12,2,Y,2,2);notch(g);});});
   const tb=g=>{frameP(g,'#4b5059');P(g,7,7,K,2,2);},W='#e8e2d0',B='#7fd0ff';
@@ -371,6 +386,8 @@ function itemSpr(id){
   if(ITEMSPR[id])return ITEMSPR[id];const r=RES[id],c=cv(8,8),g=c.getContext('2d');
   if(r.kind==='product')drawMap(g,PROD_MAP[id],0,0);
   else if(r.kind==='energy')drawMap(g,FORM_MAP.energy,0,0);
+  else if(r.kind==='waste')drawMap(g,PROD_MAP.waste,0,0);
+  else if(r.kind==='rad2')drawMap(g,FORM_MAP.rad,0,0,{a:r.c,b:'#ffffff',c:shade(r.c,-.4)});
   else drawMap(g,FORM_MAP[r.kind],0,0,{a:r.c,b:shade(r.c,.35),c:shade(r.c,-.35)});
   return ITEMSPR[id]=c;
 }
@@ -383,7 +400,7 @@ function toolIcon(n){const s=mkSpr(g=>{if(n==='select')drawMap(g,["k.......","kw
 
 /* ============ TILES ============ */
 function mk(t,x,y,d,cfg,paid,line){
-  const o={t,x,y,d,cfg:cfg?JSON.parse(JSON.stringify(cfg)):{},paid:paid||0,line,its:[],qw:0,qn:0,energy:0,inp:null,q:null,timer:0,buf:{},cb:[],busy:false,hold:null,idx:0,tq:[],oq:[]};
+  const o={t,x,y,d,cfg:cfg?JSON.parse(JSON.stringify(cfg)):{},paid:paid||0,line,its:[],qw:0,qn:0,wq:0,energy:0,inp:null,q:null,timer:0,buf:{},cb:[],busy:false,hold:null,idx:0,tq:[],oq:[]};
   if(t==='starter'&&!o.cfg.res)o.cfg.res=lastStarterRes;
   if(t==='radstarter'&&!o.cfg.res)o.cfg.res='uranium';
   if((t==='lsel'||t==='rsel')&&!o.cfg.res)o.cfg.res='copper';
@@ -411,8 +428,8 @@ function place(x,y,t,d,silent,cfg){
   if(t.startsWith('crafter')&&!silent&&!cfg)openInspector(o);
   return true;
 }
-function clearTile(t){let n=t.its.length+(t.q?(t.qn||1):0)+(t.inp?1:0)+(t.hold?1:0)+t.cb.length+t.tq.length+t.oq.length;for(const k in t.buf)n+=t.buf[k];
-  t.its=[];t.q=null;t.qn=0;t.qw=0;t.inp=null;t.hold=null;t.buf={};t.cb=[];t.busy=false;t.timer=0;t.tq=[];t.oq=[];t.wrong=null;return n;}
+function clearTile(t){let n=t.its.length+(t.wq||0)+(t.q?(t.qn||1):0)+(t.inp?1:0)+(t.hold?1:0)+t.cb.length+t.tq.length+t.oq.length;for(const k in t.buf)n+=t.buf[k];
+  t.its=[];t.q=null;t.qn=0;t.wq=0;t.qw=0;t.inp=null;t.hold=null;t.buf={};t.cb=[];t.busy=false;t.timer=0;t.tq=[];t.oq=[];t.wrong=null;return n;}
 function clearTiles(ts,label){let n=0;for(const t of ts)n+=clearTile(t);toast(n?label+': tog bort '+n+' saker':'Inget att tömma',!!n);}
 function removeAt(x,y){const t=tileAt(x,y);if(!t)return;S.money+=t.paid;L().grid.delete(key(x,y));if(sel===t)closeInspector();}
 const dirOf=(sx,sy)=>sx===1?0:sy===1?1:sx===-1?2:3;
@@ -423,7 +440,8 @@ function accept(t,item,travel){
   const from=(travel+2)%4,back=(t.d+2)%4;
   switch(t.t){
     case 'roller':if(t.d===from||t.its.length>=24)return false;t.its.push({item,prog:0,from});return true;
-    case 'seller':sell(item,t);return true;
+    case 'seller':if(item==='waste')return false;sell(item,t);return true;
+    case 'disposal':if(item!=='waste')return false;t.n=(t.n||0)+1;return true;
     case 'wire':case 'furnace':case 'cutter':case 'press':
       if(t.d===from||t.inp||RES[item].kind!=='raw')return false;t.inp=item;t.timer=0;return true;
     case 'cable':
@@ -435,7 +453,10 @@ function accept(t,item,travel){
       if(!need){t.wrong=item;t.wrongAt=time;return false;}if((t.buf[item]||0)>=need*2)return false;t.buf[item]=(t.buf[item]||0)+1;return true;}
     case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':case 'lsel':case 'rsel':case 'msel':
       if(from!==back||t.hold)return false;t.hold=item;t.timer=0;return true;
-    case 'refinery':if(t.d===from||t.inp||RES[item].kind!=='rad')return false;t.inp=item;t.timer=0;return true;
+    case 'centrifuge':if(t.d===from)return false;if(item==='energy'){if(t.energy>=10)return false;t.energy++;return true;}
+      if(RES[item].kind!=='rad'||t.busy||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
+    case 'recycler':if(t.d===from||item!=='waste'||t.busy||t.cb.length>=4)return false;t.cb.push(item);return true;
+    case 'refinery':if(t.d===from||t.inp||!(item in REFINE))return false;t.inp=item;t.timer=0;return true;
     case 'tin':if(t.tq.length>=3)return false;t.tq.push({item,age:0});return true;
   }
   return false;
@@ -456,6 +477,14 @@ function stepLine(line,dt){
       case 'roller':if(t.its.length){const bsp=beltSpeed(tl(t)),its=t.its;let w=0;for(let i=0;i<its.length;i++){const a=its[i];a.prog=Math.min(1,a.prog+bsp*dt);if(a.prog>=1&&push(t,a.item,t.d))continue;its[w++]=a;}its.length=w;}break;
       case 'starter':if(!t.q){t.timer+=dt;if(t.timer>=spawnInt(tl(t))){t.q=t.cfg.res;t.timer=0;}}if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'radstarter':if(!t.q){t.timer+=dt;if(t.timer>=radInt(tl(t))){t.q=t.cfg.res;t.timer=0;}}if(t.q&&push(t,t.q,t.d))t.q=null;break;
+      case 'centrifuge':
+        if(!t.busy&&!t.q&&t.cb.length===3&&t.energy>=1){t.busy=true;t.timer=0;t.energy--;}
+        if(t.busy){t.timer+=dt;if(t.timer>=centTime(tl(t))){t.q=CENTRI[t.cb[0]];t.cb=[];t.busy=false;}}
+        if(t.q&&push(t,t.q,t.d))t.q=null;break;
+      case 'recycler':
+        if(!t.busy&&!t.q&&t.cb.length===4){t.busy=true;t.timer=0;}
+        if(t.busy){t.timer+=dt;if(t.timer>=centTime(tl(t))){t.q='plutonium';t.cb=[];t.busy=false;}}
+        if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'refinery':
         if(t.inp&&!t.q){t.timer+=dt;if(t.timer>=refTime(tl(t))){t.q='energy';t.qn=REFINE[t.inp]||1;t.inp=null;t.timer=0;}}
         while(t.q&&push(t,t.q,t.d)){t.qn--;if(t.qn<=0){t.q=null;t.qn=0;}}break;
@@ -468,9 +497,9 @@ function stepLine(line,dt){
         if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{
         const r=t.cfg.rec&&RECMAP[t.cfg.rec]&&RECMAP[t.cfg.rec].tier<=M[t.t].mk?RECMAP[t.cfg.rec]:null;
-        if(r&&!t.q&&!t.busy){let ok=t.energy>=r.en||!M[t.t].rad&&!r.en;for(const k in r.in)if((t.buf[k]||0)<r.in[k]){ok=false;break;}if(ok){for(const k in r.in)t.buf[k]-=r.in[k];if(M[t.t].rad)t.energy-=r.en;t.busy=true;t.timer=0;t.making=r.id;}}
-        if(t.busy){t.timer+=dt;if(t.timer>=craftTime(tl(t))){t.busy=false;t.q=t.making;}}
-        if(t.q&&push(t,t.q,t.d))t.q=null;break;}
+        if(r&&!t.q&&!t.wq&&!t.busy){let ok=t.energy>=r.en||!M[t.t].rad&&!r.en;for(const k in r.in)if((t.buf[k]||0)<r.in[k]){ok=false;break;}if(ok){for(const k in r.in)t.buf[k]-=r.in[k];if(M[t.t].rad)t.energy-=r.en;t.busy=true;t.timer=0;t.making=r.id;}}
+        if(t.busy){t.timer+=dt;if(t.timer>=craftTime(tl(t))){t.busy=false;t.q=t.making;if(RECMAP[t.making].tier>=4)t.wq=1;}}
+        if(t.q){if(push(t,t.q,t.d))t.q=null;}else if(t.wq&&push(t,'waste',t.d))t.wq=0;break;}
       case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':
         if(t.hold){t.timer+=dt;if(t.timer>=.1){const l=(t.d+3)%4,r=(t.d+1)%4,f=t.d;let o;
           if(t.t==='splitter')o=[l,r];else if(t.t==='lsplit')o=[f,l];else if(t.t==='rsplit')o=[f,r];
@@ -488,7 +517,7 @@ function stepLine(line,dt){
         break;}
       case 'tout':if(t.oq.length&&push(t,t.oq[0],t.d))t.oq.shift();break;
     }
-    if(t.q)t.qw+=dt;else t.qw=0;
+    if(t.q||t.wq)t.qw+=dt;else t.qw=0;
   }
 }
 function update(dt){
@@ -518,7 +547,7 @@ function buildFloor(){
 function drawSpr(g,spr,x,y,d){if(!d){g.drawImage(spr,x,y,TS,TS);return;}g.save();g.translate(x+TS/2,y+TS/2);g.rotate(d*Math.PI/2);g.drawImage(spr,-TS/2,-TS/2,TS,TS);g.restore();}
 function drawIt(g,id,cx,cy,sz){g.drawImage(itemSpr(id),Math.round(cx-sz/2),Math.round(cy-sz/2),sz,sz);}
 function pbar(g,x,y,f,col){P(g,x+9,y+TS-10,K,TS-18,5);P(g,x+10,y+TS-9,col,(TS-20)*Math.min(1,f),3);}
-const NODIR=t=>t==='seller'||t==='tin';
+const NODIR=t=>t==='seller'||t==='tin'||t==='disposal';
 function drawTile(g,t,live){
   const x=t.x*TS,y=t.y*TS,cx=x+TS/2,cy=y+TS/2;
   if(t.t==='roller'){const f=live?Math.floor(time*16*beltSpeed(tl(t)))&7:0;drawSpr(g,ROLL[f],x,y,t.d);return;}
@@ -527,6 +556,8 @@ function drawTile(g,t,live){
   switch(t.t){
     case 'starter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/spawnInt(tl(t)),'#7fd0ff');break;
     case 'radstarter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/radInt(tl(t)),'#7be35a');break;
+    case 'centrifuge':if(live){if(t.cb.length)drawIt(g,t.cb[0],cx,cy-2,14);for(let i=0;i<3;i++)P(g,x+16+i*6,y+TS-12,i<t.cb.length?'#7be35a':K,4,4);if(t.busy)pbar(g,x,y,t.timer/centTime(tl(t)),'#c8ff3a');P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/10));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
+    case 'recycler':if(live){for(let i=0;i<4;i++)P(g,x+13+i*6,y+TS-12,i<t.cb.length?Y:K,4,4);if(t.busy)pbar(g,x,y,t.timer/centTime(tl(t)),Y);}break;
     case 'refinery':if(live&&t.inp){drawIt(g,t.inp,cx,cy,14);pbar(g,x,y,t.timer/refTime(tl(t)),'#7be35a');}break;
     case 'wire':case 'furnace':case 'cutter':case 'press':if(live&&t.inp){drawIt(g,t.inp,cx,cy,16);pbar(g,x,y,t.timer/mTime(t.t,tl(t)),Y);}break;
     case 'cable':if(live){if(t.cb.length)drawIt(g,t.cb[0],cx,cy-2,16);for(let i=0;i<3;i++)P(g,x+16+i*6,y+TS-12,i<t.cb.length?Y:K,4,4);if(t.busy)pbar(g,x,y,t.timer/mTime('cable',tl(t)),Y);}break;
@@ -540,7 +571,7 @@ function drawTile(g,t,live){
   }
   if(live&&t.cfg&&t.cfg.spd!=null&&UPK[t.t]&&tl(t)<lv(UPK[t.t])){P(g,x+5,y+5,K,8,7);P(g,x+6,y+6,'#7fd0ff',2,5);P(g,x+9,y+6,'#7fd0ff',2,5);}
   if(live&&t.hold)drawIt(g,t.hold,cx,cy,14);
-  if(live&&t.q){drawIt(g,t.q,cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);}
+  if(live&&(t.q||t.wq)){drawIt(g,t.q||'waste',cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);}
   if(live&&t.t==='tout'&&t.oq.length)drawIt(g,t.oq[0],cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);
 }
 function render(){
@@ -603,7 +634,7 @@ function buildToolbar(){
     h+=`</div></div>`;}
   toolsEl.innerHTML=h;refreshToolbar();
 }
-const SLOTS=[['starter','radstarter'],['seller'],['wire'],['furnace'],['cutter'],['press'],['cable','refinery'],['crafter1','crafter2','crafter3','crafter4','crafter5'],['roller'],['splitter','lsplit','rsplit','asplit'],['lsel','rsel','msel'],['tin','tout']];
+const SLOTS=[['starter','radstarter'],['seller','disposal'],['wire'],['furnace'],['cutter'],['press'],['cable','refinery','centrifuge','recycler'],['crafter1','crafter2','crafter3','crafter4','crafter5'],['roller'],['splitter','lsplit','rsplit','asplit'],['lsel','rsel','msel'],['tin','tout']];
 const SLOT_GROUPS=[['Produktion',[0,1,2,3,4,5,6,7]],['Transport',[8,9,10,11]]];
 const slotCur=SLOTS.map(v=>v[0]);
 const slotOf=t=>SLOTS.findIndex(v=>v.includes(t));
@@ -714,7 +745,7 @@ function renderUndo(){const u=$('undo'),r=$('redo');if(u)u.disabled=!undoSt.leng
 /* inspector */
 function openInspector(t){sel=t;renderInspector();}
 function closeInspector(){sel=null;insp.hidden=true;}
-function reachable(){const out=[];for(const k in RAW)if(S.raw[k]){out.push(k);for(const f in FORMS)out.push(k+'_'+f);out.push(k+'_cable');}for(const k in RAD)if(S.unl.radstarter&&S.raw[k])out.push(k);if(S.unl.refinery)out.push('energy');for(const r of RECIPES)if(S.rec[r.id])out.push(r.id);return out;}
+function reachable(){const out=[];for(const k in RAW)if(S.raw[k]){out.push(k);for(const f in FORMS)out.push(k+'_'+f);out.push(k+'_cable');}for(const k in RAD)if(S.unl.radstarter&&S.raw[k])out.push(k);if(S.unl.refinery)out.push('energy');if(S.unl.centrifuge)out.push('enriched_u','pure_pu');if(S.unl.crafter4)out.push('waste');for(const r of RECIPES)if(S.rec[r.id])out.push(r.id);return out;}
 const chip=(id,act,on,extra)=>`<button class="chip${on?' on':''}" data-act="${act}" data-v="${id}" ${extra||''}><img alt="" src="${itemIcon(id)}">${RES[id].n}</button>`;
 function renderInspector(){
   const t=sel;if(!t){insp.hidden=true;return;}const def=M[t.t],c=t.cfg;
@@ -741,20 +772,24 @@ function renderInspector(){
   h+=`<div class="isec"><h4>Status</h4><div class="live" id="live"></div></div>`;
   insp.innerHTML=h;insp.hidden=false;updateLive();
 }
-function blockMsg(t){if(!t.q||t.qw<2)return'';const n=nbr(t,t.d);return '<span class="warn">'+(!n?'Inget tar emot vid utgången':n.t==='roller'&&(n.d+2)%4===t.d?'Bandet pekar mot maskinen':'Nästa maskin tar inte emot '+RES[t.q].n)+'</span>';}
+function blockMsg(t){const it=t.q||(t.wq?'waste':null);if(!it||t.qw<2)return'';const n=nbr(t,t.d);return '<span class="warn">'+(!n?'Inget tar emot vid utgången':n.t==='roller'&&(n.d+2)%4===t.d?'Bandet pekar mot maskinen':'Nästa maskin tar inte emot '+RES[it].n)+'</span>';}
 function updateLive(){
   const t=sel,el=$('live');if(!t||!el)return;let h='';const c=t.cfg;
   switch(t.t){
     case 'starter':h=`Gör ${RES[c.res].n} var ${fmt2(spawnInt(tl(t)))} s<br>Säljs för ${fmt(RES[c.res].v*priceMult())} kr`;break;
     case 'radstarter':h=`Gör ${RES[c.res].n} var ${fmt2(radInt(tl(t)))} s<br>Säljs för ${fmt(RES[c.res].v*priceMult())} kr`;break;
     case 'refinery':h=`Uran → 2 energiceller, plutonium → 3 · ${fmt2(refTime(tl(t)))} s<br>`+(t.inp?`Raffinerar ${RES[t.inp].n}`:t.q?`Lämnar ut ${t.qn} energiceller`:'Väntar på uran eller plutonium')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
-    case 'seller':h=`Betalar ${Math.round(priceMult()*100)} % av grundpriset`;break;
+    case 'seller':h=`Betalar ${Math.round(priceMult()*100)} % av grundpriset`+(S.unl.crafter4?'<br>Tar inte emot radioaktivt avfall':'');break;
+    case 'disposal':h=`Har tagit hand om ${t.n||0} avfall sedan spelet startade`;break;
+    case 'centrifuge':h=`3 uran → anrikat uran, 3 plutonium → renat plutonium · ${fmt2(centTime(tl(t)))} s<br><span class="${t.energy>=1?'ok':'warn'}">${t.energy}/10 energi</span> · har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:''}`+(t.energy<1&&t.cb.length===3?'<br><span class="warn">Behöver energiceller för att köra</span>':'')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
+    case 'recycler':h=`4 avfall → 1 plutonium · ${fmt2(centTime(tl(t)))} s<br>Har ${t.cb.length}/4 avfall`+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'wire':case 'furnace':case 'cutter':case 'press':{const f=M[t.t].form;h=`Råvara → ${FORMS[f].nm('…')} · ${fmt2(mTime(t.t,tl(t)))} s<br>`+(t.inp?`Gör ${RES[t.inp+'_'+f].n}`:'Väntar på en råvara')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;}
     case 'cable':h=`3 trådar → kabel · ${fmt2(mTime('cable',tl(t)))} s<br>Har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:'trådar'}`+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{const r=c.rec&&RECMAP[c.rec];if(!r){h='Ingen ritning vald';break;}
       h=`<b>${r.n}</b> · ${fmt(r.v*priceMult())} kr`;if(M[t.t].rad)h+=`<div class="ing"><img alt="" src="${itemIcon('energy')}"><span class="${t.energy>=r.en?'ok':''}">${t.energy}/20</span> energi (ritningen kräver ${r.en})</div>`;for(const k in r.in){const have=t.buf[k]||0;h+=`<div class="ing"><img alt="" src="${itemIcon(k)}"><span class="${have>=r.in[k]?'ok':''}">${have}/${r.in[k]}</span> ${RES[k].n}</div>`;}
       if(t.wrong&&time-t.wrongAt<1.5)h+=`<div class="warn">${RES[t.wrong].n} ingår inte i ritningen och står i vägen. Töm bandet eller maskinen före.</div>`;
-      h+=t.busy?'Bygger…':blockMsg(t)||(t.q?'Lämnar ut':'Väntar på delar');break;}
+      if(r.tier>=4)h+='<div class="spdtxt">Varje produkt ger också 1 radioaktivt avfall ut genom utgången.</div>';
+      h+=t.busy?'Bygger…':blockMsg(t)?blockMsg(t)+(!t.q&&t.wq?'<br><span class="warn">Sortera ut avfallet med en väljare till ett slutförvar eller en återvinnare.</span>':''):(t.q||t.wq?'Lämnar ut':'Väntar på delar');break;}
     case 'splitter':h='Vänster, höger, vänster, höger…';break;
     case 'lsplit':h='Fram, vänster, fram, vänster…';break;
     case 'rsplit':h='Fram, höger, fram, höger…';break;
@@ -764,7 +799,7 @@ function updateLive(){
     case 'tin':{const n=[...t.line.grid.values()].filter(o=>o.t==='tout'&&o.cfg.ch===c.ch).length;h=`Skickar till ${n} transportör ut med nummer ${c.ch}`+(n?'':'<br><span class="warn">Ingen mottagare</span>');break;}
     case 'tout':h=`Tar emot från nummer ${c.ch}`;break;
     case 'roller':{h=`${fmt2(beltSpeed(tl(t)))} rutor/s · ${t.its.length} saker`;const stuck=t.its.filter(a=>a.prog>=1);if(stuck.length){const n=nbr(t,t.d);
-      h+='<br><span class="warn">'+(!n?'Bandet slutar här. Inget tar emot.':['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&n.d!==t.d?M[n.t].n+' tar bara emot bakifrån.':n.t==='roller'&&(n.d+2)%4===t.d?'Nästa band pekar tillbaka hit.':M[n.t].n+' tar inte emot '+RES[stuck[0].item].n+' just nu.')+'</span>';}break;}
+      h+='<br><span class="warn">'+(!n?'Bandet slutar här. Inget tar emot.':['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&n.d!==t.d?M[n.t].n+' tar bara emot bakifrån.':n.t==='roller'&&(n.d+2)%4===t.d?'Nästa band pekar tillbaka hit.':stuck[0].item==='waste'&&n.t!=='disposal'&&n.t!=='recycler'?M[n.t].n+' tar inte emot radioaktivt avfall. Skicka det till ett slutförvar eller en återvinnare.':M[n.t].n+' tar inte emot '+RES[stuck[0].item].n+' just nu.')+'</span>';}break;}
   }
   el.innerHTML=h;
 }
@@ -849,10 +884,10 @@ function renderPanel(){
   } else if(panel==='info'){
     h=head('Priser')+`<p>Priserna nedan är vad en säljare betalar nu (${Math.round(priceMult()*100)} % av grundpriset). Gråa rader är inte upplåsta än.</p><div class="tablewrap"><table><thead><tr><th>Resurs</th><th>Görs i</th><th style="text-align:right">Pris</th></tr></thead><tbody>`;
     for(const k in RES){const r=RES[k];let how;
-      if(r.kind==='raw')how='Startare';else if(r.kind==='rad')how='Radioaktiv startare';else if(r.kind==='energy')how='Raffinaderi ← uran eller plutonium';
+      if(r.kind==='raw')how='Startare';else if(r.kind==='rad')how='Radioaktiv startare';else if(r.kind==='energy')how='Raffinaderi ← uran, plutonium eller anrikat/renat';else if(r.kind==='rad2')how='Centrifug ← 3× '+RES[r.base].n+' + 1 energi';else if(r.kind==='waste')how='Biprodukt från radioaktiva ritningar. Kan inte säljas.';
       else if(r.kind==='product')how=`<span class="tier">${r.tier<=3?'MK'+r.tier:'RAD'+(r.tier-3)}</span> `+Object.entries(RECMAP[k].in).map(([a,n])=>n+'× '+RES[a].n).join(' + ')+(RECMAP[k].en?' + '+RECMAP[k].en+' energi':'');
       else if(r.kind==='cable')how='Kabelmaskin ← 3× '+RES[r.base+'_wire'].n;else how=M[r.mach].n+' ← '+RES[r.base].n;
-      const lock=r.kind==='product'?!S.rec[k]:r.kind==='energy'?!S.unl.refinery:r.kind==='rad'?!(S.unl.radstarter&&S.raw[k]):!S.raw[r.base];
+      const lock=r.kind==='product'?!S.rec[k]:r.kind==='energy'?!S.unl.refinery:r.kind==='rad2'?!S.unl.centrifuge:r.kind==='waste'?!S.unl.crafter4:r.kind==='rad'?!(S.unl.radstarter&&S.raw[k]):!S.raw[r.base];
       h+=`<tr class="${lock?'locked':''}"><td><img alt="" src="${itemIcon(k)}">${r.n}</td><td>${how}</td><td class="v">${fmt(r.v*priceMult())} kr</td></tr>`;}
     h+='</tbody></table></div>';
   } else if(panel==='stats'){
@@ -864,7 +899,7 @@ function renderPanel(){
 <li>Bearbeta råvaror i tråddragare, ugn, kapare eller hydraulpress. Då blir de värda mer.</li>
 <li>Köp <b>ritningar</b> och låt en <b>hantverkare</b> bygga produkter av flera delar. Svårare ritningar kräver MK2 eller MK3.</li>
 <li>Sortera med <b>väljare</b>, dela flöden med <b>delare</b> och flytta saker långt med <b>transportörer</b>.</li>
-<li>När du har råd: lås upp den <b>radioaktiva</b> delen. Radioaktiva startare gör uran och plutonium, raffinaderiet gör energiceller och radioaktiva hantverkare bygger de dyraste produkterna.</li>
+<li>När du har råd: lås upp den <b>radioaktiva</b> delen. Radioaktiva startare gör uran och plutonium. <b>Centrifugen</b> anrikar dem (3 → 1, kostar energi) och <b>raffinaderiet</b> gör energiceller. Radioaktiva hantverkare behöver energi och lämnar <b>radioaktivt avfall</b> efter varje produkt. Avfallet kan inte säljas: sortera ut det med en väljare till ett <b>slutförvar</b>, eller till en <b>återvinnare</b> som gör plutonium av det.</li>
 <li>Köp <b>större yta</b> för en linje, eller fler <b>linjer</b> när en fabrik är full. Alla linjer går samtidigt, även när du är borta.</li></ol>
 <p>Ett föremål som en maskin inte vill ha stoppar bandet. Använd väljare för att skicka rätt sak till rätt maskin. Har fel sak fastnat: tryck <b>Töm</b> i maskinens inställningar, töm markerade maskiner med <b>V</b>, eller töm alla band på linjen i raden med linjer.</p></div>
 <div><h3>Tangenter</h3><dl>
