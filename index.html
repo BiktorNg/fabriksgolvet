@@ -51,7 +51,7 @@ kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:v
 .tool.lock{opacity:.6}
 .tool.lock img{filter:grayscale(1) brightness(.6)}
 .tool.lock .tc{color:var(--gold)}
-@media (max-width:1320px){.tool{width:72px}.tools{gap:5px}.grp .gb{gap:5px}}
+@media (max-width:1320px){.navbtns kbd{display:none}.tool{width:72px}.tools{gap:5px}.grp .gb{gap:5px}}
 @media (max-width:1400px){.navbtns button{padding:6px 7px}.navbtns kbd{margin-right:4px}.bar{gap:10px}.stat{padding:3px 8px}.num{font-size:23px}.money .num{font-size:26px}}
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#101114}
 #floor{display:block;position:absolute;inset:0;cursor:crosshair;touch-action:none;image-rendering:pixelated}
@@ -79,6 +79,9 @@ kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:v
 .spdbar i{flex:1;height:12px;background:var(--lo);box-shadow:inset 1px 1px 0 #000}
 .spdbar i.on{background:var(--blue);box-shadow:inset -1px -2px 0 rgba(0,0,0,.35)}
 .spdtxt{font-size:13.5px;color:var(--muted)}
+.sws{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sw{width:26px;height:22px;padding:0;font-size:13px;color:var(--muted)}
+.sw.on{outline:3px solid var(--gold);outline-offset:1px}
 .spdin{display:flex;align-items:center;gap:8px}
 .spdin label{font-size:13.5px;color:var(--muted)}
 .spdin input{width:76px;font-family:var(--num);font-size:20px;background:var(--lo);color:var(--ink);border:0;padding:2px 6px;box-shadow:inset 2px 2px 0 #000}
@@ -126,6 +129,16 @@ td img{width:24px;height:24px;vertical-align:middle;margin-right:6px;image-rende
 .help ol{padding-left:20px;margin:0}
 textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;background:var(--lo);color:var(--ink);border:0;padding:8px;box-shadow:inset 2px 2px 0 #000;resize:vertical}
 .big{font-family:var(--head);font-size:40px;color:var(--money);text-shadow:3px 3px 0 #000;margin:8px 0 14px}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ach{background:#33373f;padding:10px;display:flex;flex-direction:column;gap:5px;box-shadow:inset 2px 2px 0 #484d57,inset -2px -2px 0 #1e2125,0 0 0 2px var(--edge);min-width:0}
+.ach.ok{background:#2c3a29;box-shadow:inset 2px 2px 0 #4a6a3f,inset -2px -2px 0 #1a2416,0 0 0 2px var(--edge)}
+.achh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.achh b{font-size:15px}.achr{margin-left:auto;font-family:var(--num);font-size:18px;color:var(--money)}
+.ach p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.3}
+.achbar{height:10px;background:var(--lo);box-shadow:inset 1px 1px 0 #000}.achbar i{display:block;height:100%;background:var(--gold)}.ach.ok .achbar i{background:var(--money)}
+.achp{font-family:var(--num);font-size:16px;color:var(--muted)}
+#achtoast{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:30px;display:flex;flex-direction:column;gap:2px;padding:10px 14px;background:#2c3a29;box-shadow:inset 2px 2px 0 #4a6a3f,0 0 0 3px var(--edge),5px 5px 0 rgba(0,0,0,.5);transform:translateY(20px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+#achtoast.show{opacity:1;transform:none}#achtoast b{font-family:var(--head);font-size:11px;color:var(--gold);font-weight:400}#achtoast em{font-style:normal;font-family:var(--num);font-size:20px;color:var(--money)}
+@media (prefers-reduced-motion:reduce){#achtoast{transition:none}}
 #toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:#5a221c;color:#ffe0da;padding:7px 14px;font-weight:600;pointer-events:none;opacity:0;white-space:nowrap;box-shadow:inset 2px 2px 0 #8a3a30,0 0 0 3px var(--edge),4px 4px 0 rgba(0,0,0,.5)}
 #toast.good{background:#24451c;color:#ddffd0;box-shadow:inset 2px 2px 0 #3f7a32,0 0 0 3px var(--edge),4px 4px 0 rgba(0,0,0,.5)}
 #toast.show{opacity:1}
@@ -148,6 +161,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
     <button data-panel="bp"><kbd>B</kbd>Ritningar</button>
     <button data-panel="info"><kbd>I</kbd>Priser</button>
     <button data-panel="stats"><kbd>T</kbd>Statistik</button>
+    <button data-panel="ach" id="achbtn"><kbd>O</kbd>Uppdrag <span id="achn"></span></button>
     <button data-panel="help"><kbd>H</kbd>Hjälp</button>
   </div>
 </header>
@@ -158,7 +172,8 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
   <div id="zoom"><button id="zin" title="Zooma in (+)" aria-label="Zooma in">+</button><span class="zl" id="zlv">100%</span><button id="zout" title="Zooma ut (−)" aria-label="Zooma ut">−</button><button id="zfit" class="small" title="Visa hela linjen (mellanslag)" aria-label="Visa hela linjen">Hela</button></div>
-  <div id="ver">v2.11</div>
+  <div id="achtoast" role="status"></div>
+  <div id="ver">v3.0</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -284,9 +299,11 @@ const M={
  rsel:{n:'Högerväljare',key:'F',unlock:20000,cost:1500,d:'Vald resurs går åt höger. Allt annat går rakt fram.'},
  msel:{n:'Multiväljare',key:'F',unlock:90000,cost:5000,d:'En vald resurs åt vänster, en annan åt höger, resten rakt fram.'},
  tin:{n:'Transportör in',key:'G',unlock:400000,cost:25000,d:'Tar emot från alla håll och skickar sakerna till transportör ut med samma nummer på linjen.'},
- tout:{n:'Transportör ut',key:'G',unlock:400000,cost:25000,d:'Släpper ut saker från transportör in med samma nummer.'}
+ tout:{n:'Transportör ut',key:'G',unlock:400000,cost:25000,d:'Släpper ut saker från transportör in med samma nummer.'},
+ atin:{n:'Linjetransportör in',key:'G',unlock:30e6,cost:1e6,d:'Tar emot från alla håll och skickar sakerna till linjetransportör ut med samma nummer, på vilken linje som helst.'},
+ atout:{n:'Linjetransportör ut',key:'G',unlock:30e6,cost:1e6,d:'Släpper ut saker från linjetransportör in med samma nummer, från alla linjer.'}
 };
-const GROUPS=[['Produktion',['starter','seller','wire','furnace','cutter','press','cable','crafter1','crafter2','crafter3']],['Radioaktivt',['radstarter','refinery','centrifuge','disposal','recycler','crafter4','crafter5']],['Transport',['roller','splitter','lsplit','rsplit','asplit','lsel','rsel','msel','tin','tout']]];
+const GROUPS=[['Produktion',['starter','seller','wire','furnace','cutter','press','cable','crafter1','crafter2','crafter3']],['Radioaktivt',['radstarter','refinery','centrifuge','disposal','recycler','crafter4','crafter5']],['Transport',['roller','splitter','lsplit','rsplit','asplit','lsel','rsel','msel','tin','tout','atin','atout']]];
 const ALLM=GROUPS.flatMap(g=>g[1]);
 const PROC=['wire','furnace','cutter','press'];
 const fmt2=n=>n.toFixed(2).replace('.',',');
@@ -306,11 +323,39 @@ const U={
  radst:{grp:'Radioaktivt',n:'Snabbare radioaktiva startare',req:'radstarter',max:10,base:8e6,g:1.9,fx:l=>fmt2(5*0.88**l)+' s per råvara'},
  night:{grp:'Fabrik',n:'Nattskift',max:5,base:5000,g:3,fx:l=>'Offline: '+(25+15*l)+' %'}
 };
+const ACH=[
+ {id:'sell1',n:'Första försäljningen',d:'Sälj något.',r:200,p:()=>[Object.values(S.sold).reduce((a,b)=>a+b,0),1]},
+ {id:'proc1',n:'Förädlare',d:'Sälj 50 bearbetade varor (tråd, plåt, kugghjul eller flytande).',r:1000,p:()=>[Object.entries(S.sold).filter(([k])=>['liquid','gear','wire','plate'].includes(RES[k]&&RES[k].kind)).reduce((a,[,v])=>a+v,0),50]},
+ {id:'prod1',n:'Första produkten',d:'Sälj en produkt från en hantverkare.',r:3000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product').reduce((a,[,v])=>a+v,0),1]},
+ {id:'motor100',n:'Motorvärk',d:'Sälj 100 motorer.',r:15000,p:()=>[S.sold.motor||0,100]},
+ {id:'rate1k',n:'Rullande',d:'Tjäna 1 000 kr/s.',r:20000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1000]},
+ {id:'mil',n:'Miljonär',d:'Tjäna 1 M kr totalt.',r:50000,p:()=>[S.total,1e6]},
+ {id:'cable50',n:'Kabeldragare',d:'Sälj 50 kablar.',r:60000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='cable').reduce((a,[,v])=>a+v,0),50]},
+ {id:'line2',n:'Expansion',d:'Köp en andra linje.',r:100000,p:()=>[S.lines.length,2]},
+ {id:'rate10k',n:'Fart',d:'Tjäna 10 000 kr/s.',r:250000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e4]},
+ {id:'circ500',n:'Kretsarnas mästare',d:'Sälj 500 kretskort.',r:300000,p:()=>[S.sold.circuit||0,500]},
+ {id:'upg50',n:'Uppgraderare',d:'Nå 50 uppgraderingsnivåer totalt.',r:500000,p:()=>[Object.values(S.upg).reduce((a,b)=>a+b,0),50]},
+ {id:'land',n:'Stor fabrik',d:'Bygg ut en linje till största ytan.',r:1e6,p:()=>[Math.max(...S.lines.map(l=>l.land||0)),6]},
+ {id:'robot',n:'Robotåldern',d:'Sälj en robot.',r:2e6,p:()=>[S.sold.robot||0,1]},
+ {id:'rate100k',n:'Industrijätte',d:'Tjäna 100 000 kr/s.',r:5e6,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e5]},
+ {id:'sat',n:'Ut i rymden',d:'Sälj en satellit.',r:8e6,p:()=>[S.sold.satellite||0,1]},
+ {id:'rad1',n:'Strålande',d:'Sälj en radioaktiv produkt.',r:15e6,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product'&&RES[k].tier>=4).reduce((a,[,v])=>a+v,0),1]},
+ {id:'waste',n:'Ansvarsfull',d:'Ta hand om 500 radioaktivt avfall.',r:20e6,p:()=>[S.stats.waste||0,500]},
+ {id:'link',n:'Sammankopplad',d:'Skicka 100 saker mellan linjer.',r:25e6,p:()=>[S.stats.linked||0,100]},
+ {id:'bil',n:'Miljardär',d:'Tjäna 1 Md kr totalt.',r:50e6,p:()=>[S.total,1e9]},
+ {id:'lines5',n:'Imperium',d:'Ha fem linjer.',r:80e6,p:()=>[S.lines.length,5]},
+ {id:'bp',n:'Ritningssamlare',d:'Lås upp alla ritningar.',r:150e6,p:()=>[RECIPES.filter(r=>S.rec[r.id]).length,RECIPES.length]},
+ {id:'android',n:'Konstgjord intelligens',d:'Sälj en android.',r:300e6,p:()=>[S.sold.android||0,1]},
+ {id:'station',n:'Rymdstation',d:'Sälj en rymdstation.',r:500e6,p:()=>[S.sold.station||0,1]},
+ {id:'time',n:'Tidsresenär',d:'Sälj en tidsmaskin.',r:1e9,p:()=>[S.sold.timemachine||0,1]}
+];
+function checkAch(){for(const a of ACH){if(S.ach[a.id])continue;const[c,g]=a.p();if(c>=g){S.ach[a.id]=1;S.money+=a.r;S.total+=a.r;achToast(a);}}}
+function achToast(a){const el=$('achtoast');el.innerHTML=`<b>Uppdrag klart</b><span>${a.n}</span><em>+${fmt(a.r)} kr</em>`;el.classList.add('show');clearTimeout(achToast.t);achToast.t=setTimeout(()=>el.classList.remove('show'),3500);if(panel==='ach')renderPanel();}
 const LINE_COST=[0,200000,2500000,30000000,300000000];
 const GWMAX=30,GHMAX=20;
 
 /* ============ STATE ============ */
-const S={money:1000,upg:{},raw:{copper:1},rec:{},unl:{roller:1,starter:1,seller:1},lines:[{grid:new Map(),land:0}],cur:0,total:0,sold:{}};
+const S={money:1000,upg:{},raw:{copper:1},rec:{},unl:{roller:1,starter:1,seller:1},lines:[{grid:new Map(),land:0}],cur:0,total:0,sold:{},ach:{},stats:{}};
 const key=(x,y)=>x+','+y;
 const lv=k=>S.upg[k]||0;
 const spawnInt=(l=lv('st_time'))=>2*0.9**l;
@@ -319,6 +364,9 @@ const beltSpeed=(l=lv('belt'))=>1.5*1.15**l;
 const mTime=(t,l=lv(t))=>t==='cable'?3*0.85**l:2*0.85**l;
 const craftTime=(l=lv('crafter'))=>3.5*0.85**l;
 const refTime=(l=lv('refinery'))=>3*0.85**l;const centTime=(l=lv('centri'))=>4*0.85**l;const radInt=(l=lv('radst'))=>5*0.88**l;
+const BELTCOL=[null,'#b0613f','#b8923e','#6f8a46','#3f8a84','#4f6aa0','#80588f','#a8a08a'];
+const BELTNAME=['Ingen','Rost','Ockra','Mossa','Kricka','Skiffer','Plommon','Sand'];
+const swatches=(act,cur)=>BELTCOL.map((c,i)=>`<button class="sw${(cur||0)===i?' on':''}" data-act="${act}" data-a="${act}" data-v="${i}" title="${BELTNAME[i]}" aria-label="${BELTNAME[i]}" style="background:${c||'var(--lo)'}">${i?'':'×'}</button>`).join('');
 const UPK={starter:'st_time',radstarter:'radst',wire:'wire',furnace:'furnace',cutter:'cutter',press:'press',cable:'cable',crafter1:'crafter',crafter2:'crafter',crafter3:'crafter',crafter4:'crafter',crafter5:'crafter',refinery:'refinery',centrifuge:'centri',recycler:'centri',roller:'belt'};
 const tl=t=>{const k=UPK[t.t];if(!k)return 0;const m=lv(k),sp=t.cfg&&t.cfg.spd;return sp==null||sp>m?m:Math.max(0,sp);};
 const SPDF=type=>type==='roller'?[1.5,1.15,'rutor/s']:type==='starter'?[2,0.9,'s']:type==='radstarter'?[5,0.88,'s']:type==='refinery'?[3,0.85,'s']:type==='centrifuge'||type==='recycler'?[4,0.85,'s']:type==='cable'?[3,0.85,'s']:type.startsWith('crafter')?[3.5,0.85,'s']:[2,0.85,'s'];
@@ -337,7 +385,7 @@ const STARTER_PRICE=100;const starterCost=()=>STARTER_PRICE;
 const machineCost=t=>t==='starter'?starterCost():M[t].cost;
 const inBounds=(x,y)=>x>=0&&y>=0&&x<gw()&&y<gh();
 
-let tool='select',placeDir=0,machDir=0,copyCfg=null,lastStarterRes='copper',lastRec=null;
+let lastBeltCol=0;let tool='select',placeDir=0,machDir=0,copyCfg=null,lastStarterRes='copper',lastRec=null;
 let hover=null,drag=null,panning=null,sel=null,paused=false,time=0;
 const selT=new Set();let areaDrag=null,areaPress=null,clip=null,moving=null,amove=null;
 const keys=new Set(),cam={x:0,y:0,z:1},floats=[];
@@ -385,6 +433,8 @@ function buildSprites(){
   SPR.msel=mkSpr(g=>{tb(g);arrowDir(g,0,W);arrowDir(g,1,B);arrowDir(g,3,B);});
   SPR.tin=mkSpr(g=>{frameP(g,'#5a3f7a');P(g,4,4,'#b78cff',8,8);P(g,5,5,K,6,6);for(const[a,b]of[[7,2],[7,13],[2,7],[13,7]])P(g,a,b,'#b78cff',2,1+(b===2||b===13?0:1));});
   SPR.tout=mkSpr(g=>{frameP(g,'#5a3f7a');P(g,4,4,'#ffb46b',8,8);P(g,5,5,K,6,6);notch(g);});
+  SPR.atin=mkSpr(g=>{frameP(g,'#2f5866');P(g,4,4,'#7fd0ff',8,8);P(g,5,5,K,6,6);for(const[a,b]of[[7,2],[7,13],[2,7],[13,7]])P(g,a,b,'#7fd0ff',2,1+(b===2||b===13?0:1));P(g,3,3,Y,2,1);P(g,11,3,Y,2,1);});
+  SPR.atout=mkSpr(g=>{frameP(g,'#2f5866');P(g,4,4,'#9be36d',8,8);P(g,5,5,K,6,6);notch(g);P(g,3,3,Y,2,1);P(g,3,12,Y,2,1);});
   SPR.roller=ROLL[0];
 }
 const ITEMSPR={};
@@ -412,7 +462,7 @@ function mk(t,x,y,d,cfg,paid,line){
   if((t==='lsel'||t==='rsel')&&!o.cfg.res)o.cfg.res='copper';
   if(t==='msel'){if(!o.cfg.l)o.cfg.l='copper';if(!o.cfg.r)o.cfg.r='iron';}
   if(t==='asplit'&&!o.cfg.ratio)o.cfg.ratio=[1,1,1];
-  if((t==='tin'||t==='tout')&&!o.cfg.ch)o.cfg.ch=1;
+  if((t==='tin'||t==='tout'||t==='atin'||t==='atout')&&!o.cfg.ch)o.cfg.ch=1;
   if(t.startsWith('crafter')&&o.cfg.rec===undefined){const mkv=M[t].mk;o.cfg.rec=(lastRec&&S.rec[lastRec]&&RECMAP[lastRec].tier<=mkv)?lastRec:(RECIPES.find(r=>S.rec[r.id]&&r.tier<=mkv)||{}).id||null;}
   return o;
 }
@@ -447,7 +497,7 @@ function accept(t,item,travel){
   switch(t.t){
     case 'roller':{if(t.d===from||t.its.length>=72)return false;let c=0;for(const a of t.its)if(a.item===item&&++c>=24)return false;t.its.push({item,prog:0,from});return true;}
     case 'seller':if(item==='waste')return false;sell(item,t);return true;
-    case 'disposal':if(item!=='waste')return false;t.n=(t.n||0)+1;return true;
+    case 'disposal':if(item!=='waste')return false;t.n=(t.n||0)+1;S.stats.waste=(S.stats.waste||0)+1;return true;
     case 'wire':case 'furnace':case 'cutter':case 'press':
       if(t.d===from||t.inp||RES[item].kind!=='raw')return false;t.inp=item;t.timer=0;return true;
     case 'cable':
@@ -463,7 +513,7 @@ function accept(t,item,travel){
       if(RES[item].kind!=='rad'||t.busy||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
     case 'recycler':if(t.d===from||item!=='waste'||t.busy||t.cb.length>=4)return false;t.cb.push(item);return true;
     case 'refinery':if(t.d===from||t.inp||!(item in REFINE))return false;t.inp=item;t.timer=0;return true;
-    case 'tin':if(t.tq.length>=3)return false;t.tq.push({item,age:0});return true;
+    case 'tin':case 'atin':if(t.tq.length>=3)return false;t.tq.push({item,age:0});return true;
   }
   return false;
 }
@@ -475,6 +525,7 @@ function sell(item,t){
   const v=RES[item].v*priceMult();S.money+=v;earn(v);S.sold[item]=(S.sold[item]||0)+1;salesAcc[item]=(salesAcc[item]||0)+1;valAcc[item]=(valAcc[item]||0)+v;
   if(t.line===L()&&floats.length<60)floats.push({x:t.x*TS+TS/2+(Math.random()*20-10),y:t.y*TS+6-Math.random()*8,txt:'+'+fmt(v),life:1});
 }
+let gOuts=new Map();
 function stepLine(line,dt){
   const outs=new Map();
   for(const t of line.grid.values())if(t.t==='tout'){if(!outs.has(t.cfg.ch))outs.set(t.cfg.ch,[]);outs.get(t.cfg.ch).push(t);}
@@ -489,7 +540,7 @@ function stepLine(line,dt){
         if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'recycler':
         if(!t.busy&&!t.q&&t.cb.length===4){t.busy=true;t.timer=0;}
-        if(t.busy){t.timer+=dt;if(t.timer>=centTime(tl(t))){t.q='plutonium';t.cb=[];t.busy=false;}}
+        if(t.busy){t.timer+=dt;if(t.timer>=centTime(tl(t))){S.stats.waste=(S.stats.waste||0)+4;t.q='plutonium';t.cb=[];t.busy=false;}}
         if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'refinery':
         if(t.inp&&!t.q){t.timer+=dt;if(t.timer>=refTime(tl(t))){t.q='energy';t.qn=REFINE[t.inp]||1;t.inp=null;t.timer=0;}}
@@ -516,17 +567,18 @@ function stepLine(line,dt){
           if(t.t==='lsel'&&t.hold===t.cfg.res)o=(t.d+3)%4;else if(t.t==='rsel'&&t.hold===t.cfg.res)o=(t.d+1)%4;
           else if(t.t==='msel'){if(t.hold===t.cfg.l)o=(t.d+3)%4;else if(t.hold===t.cfg.r)o=(t.d+1)%4;}
           if(push(t,t.hold,o))t.hold=null;}}break;
-      case 'tin':{
+      case 'tin':case 'atin':{
         for(const e of t.tq)e.age+=dt;
-        if(t.tq.length&&t.tq[0].age>=1){const list=outs.get(t.cfg.ch)||[];
-          for(let k=0;k<list.length;k++){const o=list[(t.idx+k)%list.length];if(o.oq.length<3){o.oq.push(t.tq.shift().item);t.idx=(t.idx+k+1)%list.length;break;}}}
+        if(t.tq.length&&t.tq[0].age>=1){const list=(t.t==='atin'?gOuts:outs).get(t.cfg.ch)||[];
+          for(let k=0;k<list.length;k++){const o=list[(t.idx+k)%list.length];if(o.oq.length<3){if(t.t==='atin'&&o.line!==t.line)S.stats.linked=(S.stats.linked||0)+1;o.oq.push(t.tq.shift().item);t.idx=(t.idx+k+1)%list.length;break;}}}
         break;}
-      case 'tout':if(t.oq.length&&push(t,t.oq[0],t.d))t.oq.shift();break;
+      case 'tout':case 'atout':if(t.oq.length&&push(t,t.oq[0],t.d))t.oq.shift();break;
     }
     if(t.q||t.wq)t.qw+=dt;else t.qw=0;
   }
 }
 function update(dt){
+  gOuts=new Map();for(const l of S.lines)for(const t of l.grid.values())if(t.t==='atout'){if(!gOuts.has(t.cfg.ch))gOuts.set(t.cfg.ch,[]);gOuts.get(t.cfg.ch).push(t);}
   for(const line of S.lines)stepLine(line,dt);
   secAcc+=dt;
   if(secAcc>=1){secAcc-=1;earnWin.push(earnBucket);earnBucket=0;if(earnWin.length>60)earnWin.shift();
@@ -553,10 +605,12 @@ function buildFloor(){
 function drawSpr(g,spr,x,y,d){if(!d){g.drawImage(spr,x,y,TS,TS);return;}g.save();g.translate(x+TS/2,y+TS/2);g.rotate(d*Math.PI/2);g.drawImage(spr,-TS/2,-TS/2,TS,TS);g.restore();}
 function drawIt(g,id,cx,cy,sz){g.drawImage(itemSpr(id),Math.round(cx-sz/2),Math.round(cy-sz/2),sz,sz);}
 function pbar(g,x,y,f,col){P(g,x+9,y+TS-10,K,TS-18,5);P(g,x+10,y+TS-9,col,(TS-20)*Math.min(1,f),3);}
-const NODIR=t=>t==='seller'||t==='tin'||t==='disposal';
+const NODIR=t=>t==='seller'||t==='tin'||t==='atin'||t==='disposal';
 function drawTile(g,t,live){
   const x=t.x*TS,y=t.y*TS,cx=x+TS/2,cy=y+TS/2;
-  if(t.t==='roller'){const f=live?Math.floor(time*16*beltSpeed(tl(t)))&7:0;drawSpr(g,ROLL[f],x,y,t.d);return;}
+  if(t.t==='roller'){const f=live?Math.floor(time*16*beltSpeed(tl(t)))&7:0;drawSpr(g,ROLL[f],x,y,t.d);const bc=t.cfg&&BELTCOL[t.cfg.col];
+    if(bc){g.save();g.translate(x+TS/2,y+TS/2);g.rotate(t.d*Math.PI/2);g.fillStyle=bc;g.fillRect(-TS/2,-TS/2+3,TS,6);g.fillRect(-TS/2,TS/2-9,TS,6);g.fillStyle='rgba(0,0,0,.25)';for(let i=-TS/2+3;i<TS/2;i+=12){g.fillRect(i,-TS/2+3,3,6);g.fillRect(i,TS/2-9,3,6);}g.restore();}
+    return;}
   drawSpr(g,SPR[t.t],x,y,NODIR(t.t)?0:t.d);
   const c=t.cfg||{};
   switch(t.t){
@@ -573,12 +627,12 @@ function drawTile(g,t,live){
       if(M[t.t].rad){P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/20));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
     case 'lsel':case 'rsel':{const o=t.t==='lsel'?(t.d+3)%4:(t.d+1)%4;drawIt(g,c.res,cx+DIRS[o][0]*13,cy+DIRS[o][1]*13,16);break;}
     case 'msel':drawIt(g,c.l,cx+DIRS[(t.d+3)%4][0]*13,cy+DIRS[(t.d+3)%4][1]*13,16);drawIt(g,c.r,cx+DIRS[(t.d+1)%4][0]*13,cy+DIRS[(t.d+1)%4][1]*13,16);break;
-    case 'tin':case 'tout':g.font='26px VT323,monospace';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#000';g.fillText(c.ch,cx+2,cy+2);g.fillStyle=t.t==='tin'?'#d9c2ff':'#ffd6ad';g.fillText(c.ch,cx,cy);break;
+    case 'tin':case 'tout':case 'atin':case 'atout':g.font='26px VT323,monospace';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#000';g.fillText(c.ch,cx+2,cy+2);g.fillStyle={tin:'#d9c2ff',tout:'#ffd6ad',atin:'#bfe8ff',atout:'#cdf2b0'}[t.t];g.fillText(c.ch,cx,cy);break;
   }
   if(live&&t.cfg&&t.cfg.spd!=null&&UPK[t.t]&&tl(t)<lv(UPK[t.t])){P(g,x+5,y+5,K,8,7);P(g,x+6,y+6,'#7fd0ff',2,5);P(g,x+9,y+6,'#7fd0ff',2,5);}
   if(live&&t.hold)drawIt(g,t.hold,cx,cy,14);
   if(live&&(t.q||t.wq)){drawIt(g,t.q||'waste',cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);}
-  if(live&&t.t==='tout'&&t.oq.length)drawIt(g,t.oq[0],cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);
+  if(live&&(t.t==='tout'||t.t==='atout')&&t.oq.length)drawIt(g,t.oq[0],cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);
 }
 function render(){
   const g=ctx;g.setTransform(1,0,0,1,0,0);g.fillStyle='#101114';g.fillRect(0,0,canvas.width,canvas.height);
@@ -640,7 +694,7 @@ function buildToolbar(){
     h+=`</div></div>`;}
   toolsEl.innerHTML=h;refreshToolbar();
 }
-const SLOTS=[['starter','radstarter'],['seller','disposal'],['wire'],['furnace'],['cutter'],['press'],['cable','refinery','centrifuge','recycler'],['crafter1','crafter2','crafter3','crafter4','crafter5'],['roller'],['splitter','lsplit','rsplit','asplit'],['lsel','rsel','msel'],['tin','tout']];
+const SLOTS=[['starter','radstarter'],['seller','disposal'],['wire'],['furnace'],['cutter'],['press'],['cable','refinery','centrifuge','recycler'],['crafter1','crafter2','crafter3','crafter4','crafter5'],['roller'],['splitter','lsplit','rsplit','asplit'],['lsel','rsel','msel'],['tin','tout','atin','atout']];
 const SLOT_GROUPS=[['Produktion',[0,1,2,3,4,5,6,7]],['Transport',[8,9,10,11]]];
 const slotCur=SLOTS.map(v=>v[0]);
 const slotOf=t=>SLOTS.findIndex(v=>v.includes(t));
@@ -665,7 +719,7 @@ function setTool(t){
   if(M[t]&&copyCfg&&copyCfg.t!==t)copyCfg=null;
   if(t!=='area'&&t!=='paste'){selT.clear();}
   if(t!=='roller'&&tool==='roller')placeDir=machDir;else if(t==='roller'&&tool!=='roller')machDir=placeDir;
-  tool=t;const si=slotOf(t);if(si>=0)slotCur[si]=t;
+  tool=t;const si=slotOf(t);if(si>=0)slotCur[si]=t;if(t==='roller'&&!copyCfg&&lastBeltCol)copyCfg={t:'roller',cfg:{col:lastBeltCol}};
   for(const b of toolsEl.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===t||(t==='paste'&&b.dataset.tool==='area'));if(toolsEl.querySelector('[data-slot]'))refreshToolbar();
   const ob=toolsEl.querySelector('.tool.on');if(ob)ob.scrollIntoView({block:'nearest',inline:'nearest'});
   canvas.style.cursor=t==='select'?'default':'crosshair';updateHint();updateAreabar();
@@ -684,12 +738,15 @@ function updateHint(){
   hintEl.innerHTML=h;
 }
 function updateAreabar(){
-  if(tool==='area'&&areaTiles().length){const n=areaTiles().length;areabar.innerHTML=`<span>${n} markerade · dra för att flytta</span><button data-a="copy"><kbd>C</kbd>Kopiera</button><button data-a="rotsel"><kbd>R</kbd>Vrid</button><button data-a="slow" title="Långsammare"><kbd>,</kbd>Fart −</button><button data-a="fast" title="Snabbare"><kbd>.</kbd>Fart +</button><button data-a="empty">Töm</button><button class="red" data-a="del"><kbd>Del</kbd>Riv alla</button><button data-a="cancel"><kbd>Esc</kbd>Avbryt</button>`;areabar.hidden=false;}
+  if(tool==='area'&&areaTiles().length){const n=areaTiles().length;areabar.innerHTML=`<span>${n} markerade · dra för att flytta</span><button data-a="copy"><kbd>C</kbd>Kopiera</button><button data-a="rotsel"><kbd>R</kbd>Vrid</button><button data-a="slow" title="Långsammare"><kbd>,</kbd>Fart −</button><button data-a="fast" title="Snabbare"><kbd>.</kbd>Fart +</button><button data-a="empty">Töm</button><button class="red" data-a="del"><kbd>Del</kbd>Riv alla</button><button data-a="cancel"><kbd>Esc</kbd>Avbryt</button>`+(areaTiles().some(x=>x.t==='roller')?`<span class="sws" style="margin-left:4px">Färg på band: ${swatches('selcol',-1)}</span>`:'');areabar.hidden=false;}
+  else if(tool==='roller'){const cc=copyCfg&&copyCfg.t==='roller'?copyCfg.cfg.col||0:0;areabar.innerHTML=`<span class="sws">Färg på nya band: ${swatches('newcol',cc)}</span>`;areabar.hidden=false;}
   else if(tool==='paste'&&clip){areabar.innerHTML=`<span>Kopia: ${clip.cells.length} maskiner · ${fmt(clipCost())} kr</span><button data-a="rot"><kbd>R</kbd>Vrid</button><button data-a="cancel"><kbd>Esc</kbd>Klar</button>`;areabar.hidden=false;}
   else areabar.hidden=true;
 }
 areabar.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;beginEdit();
-  if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),'Markerade');else if(a==='rotsel')rotateSel();else if(a==='slow'||a==='fast'){let n=0;for(const x of areaTiles())if(UPK[x.t]){const c0=tl(x);setSpd(x,a==='fast'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);n++;}toast(n+' maskiner '+(a==='fast'?'snabbare':'långsammare'),true);}else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
+  if(a==='selcol'){let n=0;for(const x of areaTiles())if(x.t==='roller'){if(+b.dataset.v)x.cfg.col=+b.dataset.v;else delete x.cfg.col;n++;}toast(n+' band färgade '+BELTNAME[+b.dataset.v].toLowerCase(),true);}
+  else if(a==='newcol'){const v=+b.dataset.v;lastBeltCol=v;copyCfg={t:'roller',cfg:v?{col:v}:{}};updateAreabar();}
+  else if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),'Markerade');else if(a==='rotsel')rotateSel();else if(a==='slow'||a==='fast'){let n=0;for(const x of areaTiles())if(UPK[x.t]){const c0=tl(x);setSpd(x,a==='fast'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);n++;}toast(n+' maskiner '+(a==='fast'?'snabbare':'långsammare'),true);}else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
 let toastT=0;
 function toast(msg,good){const el=$('toast');el.textContent=msg;el.className=good?'good show':'show';clearTimeout(toastT);toastT=setTimeout(()=>el.className=good?'good':'',2300);}
 
@@ -768,7 +825,8 @@ function renderInspector(){
   else if(t.t==='msel'){h+=`<div class="isec"><h4>Åt vänster</h4><div class="chips">${reachable().map(k=>chip(k,'ml',c.l===k)).join('')}</div></div><div class="isec"><h4>Åt höger</h4><div class="chips">${reachable().map(k=>chip(k,'mr',c.r===k)).join('')}</div></div>`;}
   else if(t.t==='asplit'){h+=`<div class="isec"><h4>Förhållande</h4><div class="ratio">`;
     ['Vänster','Fram','Höger'].forEach((n,i)=>{h+=`<span>${n}</span><span></span><button data-act="rm" data-v="${i}">−</button><b>${c.ratio[i]}</b><button data-act="rp" data-v="${i}">+</button>`;});h+=`</div></div>`;}
-  else if(t.t==='tin'||t.t==='tout'){h+=`<div class="isec"><h4>Nummer</h4><div class="chips">`;for(let i=1;i<=9;i++)h+=`<button class="chip${c.ch===i?' on':''}" data-act="ch" data-v="${i}" style="padding:4px 10px">${i}</button>`;h+=`</div></div>`;}
+  else if(t.t==='tin'||t.t==='tout'||t.t==='atin'||t.t==='atout'){h+=`<div class="isec"><h4>Nummer${t.t[0]==='a'?' (gäller alla linjer)':''}</h4><div class="chips">`;for(let i=1;i<=9;i++)h+=`<button class="chip${c.ch===i?' on':''}" data-act="ch" data-v="${i}" style="padding:4px 10px">${i}</button>`;h+=`</div></div>`;}
+  if(t.t==='roller')h+=`<div class="isec"><h4>Färg</h4><div class="sws">${swatches('col',c.col)}</div><div class="spdtxt">Tips: markera många band med V och färga alla på en gång.</div></div>`;
   if(UPK[t.t]){const m=lv(UPK[t.t]),cur=tl(t),auto=c.spd==null;
     h+=`<div class="isec"><h4>Hastighet</h4><div class="spd"><button data-act="spdm" ${cur<=0?'disabled':''} aria-label="Långsammare">−</button><div class="spdbar">${Array.from({length:m+1},(_,i)=>`<i class="${i<=cur+1e-9?'on':''}"></i>`).join('')}</div><button data-act="spdp" ${cur>=m?'disabled':''} aria-label="Snabbare">+</button></div>`+
       `<div class="spdtxt">${m?`Nivå ${fmtLv(cur)} av ${m} · ${speedText(t.t,cur)}`:`${speedText(t.t,0)} · uppgradera för att kunna välja`}</div>`+
@@ -778,7 +836,7 @@ function renderInspector(){
   h+=`<div class="isec"><h4>Status</h4><div class="live" id="live"></div></div>`;
   insp.innerHTML=h;insp.hidden=false;updateLive();
 }
-const intoFront=(t,n)=>n&&!NODIR(n.t)&&n.t!=='tin'&&(n.d+2)%4===t.d;
+const intoFront=(t,n)=>n&&!NODIR(n.t)&&(n.d+2)%4===t.d;
 function blockMsg(t){const it=t.q||(t.wq?'waste':null);if(!it||t.qw<2)return'';const n=nbr(t,t.d);return '<span class="warn">'+(!n?'Inget tar emot vid utgången':n.t==='roller'&&(n.d+2)%4===t.d?'Bandet pekar mot maskinen':intoFront(t,n)?M[n.t].n+' har sin utgång (gul-svart kant) mot den här maskinen och tar inte emot därifrån. Vrid den med R.':'Nästa maskin tar inte emot '+RES[it].n)+'</span>';}
 function updateLive(){
   const t=sel,el=$('live');if(!t||!el)return;let h='';const c=t.cfg;
@@ -805,6 +863,8 @@ function updateLive(){
     case 'msel':h=`${RES[c.l].n} åt vänster<br>${RES[c.r].n} åt höger`;break;
     case 'tin':{const n=[...t.line.grid.values()].filter(o=>o.t==='tout'&&o.cfg.ch===c.ch).length;h=`Skickar till ${n} transportör ut med nummer ${c.ch}`+(n?'':'<br><span class="warn">Ingen mottagare</span>');break;}
     case 'tout':h=`Tar emot från nummer ${c.ch}`;break;
+    case 'atin':{const ls=[];S.lines.forEach((l,i)=>{const n=[...l.grid.values()].filter(o=>o.t==='atout'&&o.cfg.ch===c.ch).length;if(n)ls.push('linje '+(i+1)+(n>1?' ('+n+' st)':''));});h=`Skickar till linjetransportör ut nummer ${c.ch}`+(ls.length?'<br>Mottagare: '+ls.join(', '):'<br><span class="warn">Ingen mottagare på någon linje</span>');break;}
+    case 'atout':{const ls=[];S.lines.forEach((l,i)=>{if([...l.grid.values()].some(o=>o.t==='atin'&&o.cfg.ch===c.ch))ls.push('linje '+(i+1));});h=`Tar emot från linjetransportör in nummer ${c.ch}`+(ls.length?'<br>Avsändare: '+ls.join(', '):'<br><span class="warn">Ingen avsändare än</span>');break;}
     case 'roller':{h=`${fmt2(beltSpeed(tl(t)))} rutor/s · ${t.its.length} saker`;const stuck=t.its.filter(a=>a.prog>=1);if(stuck.length){const n=nbr(t,t.d);
       h+='<br><span class="warn">'+(!n?'Bandet slutar här. Inget tar emot.':['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&n.d!==t.d?M[n.t].n+' tar bara emot bakifrån.':n.t==='roller'&&(n.d+2)%4===t.d?'Nästa band pekar tillbaka hit.':intoFront(t,n)?M[n.t].n+' har sin utgång (gul-svart kant) mot bandet och tar inte emot därifrån. Vrid den med R.':stuck[0].item==='waste'&&n.t!=='disposal'&&n.t!=='recycler'?M[n.t].n+' tar inte emot radioaktivt avfall. Skicka det till ett slutförvar eller en återvinnare.':M[n.t].n+' tar inte emot '+RES[stuck[0].item].n+' just nu.')+'</span>';}break;}
   }
@@ -825,6 +885,7 @@ function inspClick(e){
   else if(a==='ch')t.cfg.ch=+v;
   else if(a==='spdm'||a==='spdp'){const c0=tl(t);setSpd(t,a==='spdp'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);}
   else if(a==='spdset')applyTypedSpeed(t);
+  else if(a==='col'){if(+v)t.cfg.col=+v;else delete t.cfg.col;}
   else if(a==='spdauto')delete t.cfg.spd;
   else if(a==='spd0')t.cfg.spd=0;
   renderInspector();
@@ -899,6 +960,11 @@ function renderPanel(){
       const lock=r.kind==='product'?!S.rec[k]:r.kind==='energy'?!S.unl.refinery:r.kind==='rad2'?!S.unl.centrifuge:r.kind==='waste'?!S.unl.crafter4:r.kind==='rad'?!(S.unl.radstarter&&S.raw[k]):!S.raw[r.base];
       h+=`<tr class="${lock?'locked':''}"><td><img alt="" src="${itemIcon(k)}">${r.n}</td><td>${how}</td><td class="v">${fmt(r.v*priceMult())} kr</td></tr>`;}
     h+='</tbody></table></div>';
+  } else if(panel==='ach'){const done=ACH.filter(a=>S.ach[a.id]).length;
+    h=head('Uppdrag')+`<p>${done} av ${ACH.length} klara. Varje uppdrag ger en pengabonus direkt när det blir klart.</p><div class="achs">`;
+    for(const a of ACH){const ok=S.ach[a.id];const[c,g]=a.p();const f=ok?1:Math.max(0,Math.min(1,c/g));
+      h+=`<div class="ach${ok?' ok':''}"><div class="achh"><b>${a.n}</b><span class="achr">+${fmt(a.r)} kr</span></div><p>${a.d}</p><div class="achbar"><i style="width:${(f*100).toFixed(1)}%"></i></div><div class="achp">${ok?'Klart':fmt(Math.min(c,g))+' / '+fmt(g)}</div></div>`;}
+    h+='</div>';
   } else if(panel==='stats'){
     h=head('Statistik')+`<div class="cards" style="margin-bottom:6px"><div class="card"><span class="lbl">Inkomst nu</span><b style="font-size:22px" class="ok" id="st-rate"></b></div><div class="card"><span class="lbl">Tjänat totalt</span><b style="font-size:22px" id="st-total"></b></div><div class="card"><span class="lbl">Maskiner</span><b style="font-size:22px">${S.lines.reduce((a,l)=>a+l.grid.size,0)} på ${S.lines.length} linje${S.lines.length>1?'r':''}</b></div></div>`+
       `<h3>Försäljning just nu</h3><div class="tablewrap"><table><thead><tr><th>Resurs</th><th style="text-align:right">st / min</th><th style="text-align:right">kr / s</th><th style="text-align:right">Sålt totalt</th></tr></thead><tbody id="st-body"></tbody></table></div>`;
@@ -909,6 +975,8 @@ function renderPanel(){
 <li>Köp <b>ritningar</b> och låt en <b>hantverkare</b> bygga produkter av flera delar. Svårare ritningar kräver MK2 eller MK3.</li>
 <li>Sortera med <b>väljare</b>, dela flöden med <b>delare</b> och flytta saker långt med <b>transportörer</b>.</li>
 <li>När du har råd: lås upp den <b>radioaktiva</b> delen. Radioaktiva startare gör uran och plutonium. <b>Centrifugen</b> anrikar dem (3 → 1, kostar energi) och <b>raffinaderiet</b> gör energiceller. Radioaktiva hantverkare behöver energi och lämnar <b>radioaktivt avfall</b> efter varje produkt. Avfallet kan inte säljas: sortera ut det med en väljare till ett <b>slutförvar</b>, eller till en <b>återvinnare</b> som gör plutonium av det.</li>
+<li><b>Linjetransportörer</b> (tangent G) skickar saker mellan linjer. Så kan en linje göra delar till en annan, vilket behövs för de största produkterna.</li>
+<li>Färga band i bandets inställningar, eller markera många med V och välj färg.</li>
 <li>Köp <b>större yta</b> för en linje, eller fler <b>linjer</b> när en fabrik är full. Alla linjer går samtidigt, även när du är borta.</li></ol>
 <p>Ett föremål som en maskin inte vill ha stoppar bandet. Använd väljare för att skicka rätt sak till rätt maskin. Har fel sak fastnat: tryck <b>Töm</b> i maskinens inställningar, töm markerade maskiner med <b>V</b>, eller töm alla band på linjen i raden med linjer.</p></div>
 <div><h3>Tangenter</h3><dl>
@@ -917,7 +985,7 @@ function renderPanel(){
 <dt><kbd>R</kbd></dt><dd>Vrid</dd><dt><kbd>C</kbd></dt><dd>Kopiera maskin under pekaren</dd><dt><kbd>E</kbd></dt><dd>Inställningar för maskin under pekaren</dd>
 <dt><kbd>,</kbd> <kbd>.</kbd></dt><dd>Långsammare / snabbare för maskinen under pekaren eller allt markerat. Även i maskinens inställningar.</dd><dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Ångra (upp till 40 steg). <kbd>Ctrl</kbd>+<kbd>Y</kbd> gör om.</dd><dt><kbd>Delete</kbd></dt><dd>Riv maskin under pekaren</dd><dt><kbd>Shift</kbd>+<kbd>T</kbd></dt><dd>Töm maskinen eller bandet under pekaren</dd><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Flytta vyn (även pilar)</dd>
 <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Zooma (även scroll)</dd><dt><kbd>Space</kbd></dt><dd>Centrera</dd><dt><kbd>L</kbd></dt><dd>Nästa linje</dd><dt><kbd>P</kbd></dt><dd>Paus</dd>
-<dt><kbd>M</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>I</kbd> <kbd>T</kbd></dt><dd>Maskiner, uppgraderingar, ritningar, priser, statistik</dd></dl></div>
+<dt><kbd>M</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>I</kbd> <kbd>T</kbd> <kbd>O</kbd></dt><dd>Maskiner, uppgraderingar, ritningar, priser, statistik, uppdrag</dd></dl></div>
 <div><h3>Säkerhetskopia</h3><p>Spelet sparas själv i webbläsaren. Kopiera koden nedan och spara den någonstans för att ta med fabriken till en annan dator.</p>
 <textarea id="exp" readonly></textarea><div class="row" style="margin-top:8px"><button data-act="copyexp">Kopiera koden</button></div>
 <p style="margin-top:14px">Klistra in en kod för att ladda en sparad fabrik:</p><textarea id="imp" placeholder="Klistra in koden här"></textarea><div class="row" style="margin-top:8px"><button class="gold" data-act="import">Ladda kod</button></div>
@@ -929,8 +997,10 @@ function renderPanel(){
   if(panel==='help'){const ex=$('exp');if(ex)ex.value=exportCode();}
   refreshPanel();
 }
+function updAchBtn(){const n=ACH.filter(a=>S.ach[a.id]).length,el=$('achn');if(el)el.textContent=n+'/'+ACH.length;}
 function refreshPanel(){
   if(modal.hidden)return;
+  if(panel==='ach'&&(refreshPanel.k=(refreshPanel.k||0)+1)%5===0){const st=sheet.scrollTop;renderPanel();sheet.scrollTop=st;return;}
   for(const b of sheet.querySelectorAll('[data-cost]'))if(b.dataset.cost!=='')b.disabled=S.money<+b.dataset.cost;
   if(panel==='stats'){const r=$('st-rate');if(r)r.textContent=fmt(currentRate())+' kr/s';const tt=$('st-total');if(tt)tt.textContent=fmt(S.total)+' kr';
     const body=$('st-body');if(body){const ids=Object.keys(S.sold).sort((a,b)=>(emaV[b]||0)-(emaV[a]||0));
@@ -1013,7 +1083,7 @@ window.addEventListener('keydown',e=>{
   if(['arrowup','arrowdown','arrowleft','arrowright',' ','tab'].includes(k))e.preventDefault();
   if(k==='escape'){if(!modal.hidden)closePanel();else if(sel)closeInspector();else if(tool==='area'&&selT.size){selT.clear();updateAreabar();}else{copyCfg=null;clip=null;setTool('select');}return;}
   if(k==='t'&&e.shiftKey&&modal.hidden){const ht0=hover&&tileAt(hover[0],hover[1]);if(ht0){clearTiles([ht0],M[ht0.t].n);if(sel===ht0)renderInspector();}return;}
-  const pmap={m:'mach',u:'upg',b:'bp',i:'info',t:'stats',h:'help'};
+  const pmap={m:'mach',u:'upg',b:'bp',i:'info',t:'stats',h:'help',o:'ach'};
   if(!modal.hidden){if(pmap[k])panel===pmap[k]?closePanel():openPanel(pmap[k]);return;}
   keys.add(k);
   if(e.repeat&&!['+','-','='].includes(k))return;
@@ -1044,20 +1114,21 @@ window.addEventListener('blur',()=>keys.clear());
 
 /* ============ SAVE ============ */
 const SAVE_KEY='fabriksgolvet-v2';
-function serialize(){return{v:2,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
+function serialize(){return{v:2,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
   lines:S.lines.map(l=>({land:l.land||0,tiles:[...l.grid.values()].map(t=>[t.t,t.x,t.y,t.d,t.cfg,t.paid])}))};}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
 function exportCode(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(serialize()))));}catch(e){return'';}}
 function loadData(d){
-  S.money=d.money;S.upg=d.upg||{};S.raw=d.raw||{copper:1};S.rec=d.rec||{};S.unl=d.unl||{roller:1,starter:1,seller:1};S.total=d.total||0;S.sold=d.sold||{};
+  S.ach=d.ach||{};S.stats=d.stats||{};S.money=d.money;S.upg=d.upg||{};S.raw=d.raw||{copper:1};S.rec=d.rec||{};S.unl=d.unl||{roller:1,starter:1,seller:1};S.total=d.total||0;S.sold=d.sold||{};
   lastStarterRes=d.ls||'copper';lastRec=d.lr||null;
   S.lines=(d.lines||[[]]).map(en=>{const old=Array.isArray(en),arr=old?en:(en.tiles||[]);const line={grid:new Map(),land:old?((d.upg&&d.upg.land)||0):(en.land||0)};for(const[t,x,y,dd,cfg,paid]of arr)if(M[t])line.grid.set(key(x,y),mk(t,x,y,dd,cfg,paid,line));return line;});
   if(!S.lines.length)S.lines=[{grid:new Map(),land:0}];
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
+  if(!d.ach){for(const x of ACH){const[c,g]=x.p();if(c>=g)S.ach[x.id]=1;}}
   S.cur=Math.min(d.cur||0,S.lines.length-1);closeInspector();selT.clear();clip=null;renderLines();refreshToolbar();floorLand=-1;
 }
 function newGame(){
-  S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];
+  S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
   const line={grid:new Map(),land:0};S.lines=[line];S.cur=0;
   line.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,line));
@@ -1086,6 +1157,7 @@ function frame(now){
   render();
   {const zl=$('zlv'),zt=Math.round(cam.z*100)+'%';if(zl.textContent!==zt)zl.textContent=zt;$('zin').disabled=cam.z>=3-1e-6;$('zout').disabled=cam.z<=.35+1e-6;}
   uiAcc+=dt;if(uiAcc>.2){uiAcc=0;$('money').textContent=fmt(S.money)+' kr';$('rate').textContent=fmt(currentRate())+' kr/s';
+    {const r=currentRate();if(r>(S.stats.bestRate||0))S.stats.bestRate=r;}checkAch();updAchBtn();
     $('startc').textContent=starterCount()+'/'+maxStarters();refreshToolbar();updateLive();refreshPanel();
     for(const nb of linesEl.querySelectorAll('[data-cost]'))nb.disabled=S.money<+nb.dataset.cost;renderUndo();}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save();}
