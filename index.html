@@ -68,6 +68,12 @@ kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:v
 .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;font-size:13px}
 .chip img{width:24px;height:24px;image-rendering:pixelated}
 .chip.on{background:#6e5a1a;box-shadow:inset 2px 2px 0 var(--gold),inset -2px -3px 0 rgba(0,0,0,.5),0 0 0 2px var(--edge)}
+.spd{display:flex;align-items:center;gap:8px}
+.spd button{padding:2px 10px;font-size:16px}
+.spdbar{flex:1;display:flex;gap:3px;min-width:0}
+.spdbar i{flex:1;height:12px;background:var(--lo);box-shadow:inset 1px 1px 0 #000}
+.spdbar i.on{background:var(--blue);box-shadow:inset -1px -2px 0 rgba(0,0,0,.35)}
+.spdtxt{font-size:13.5px;color:var(--muted)}
 .live{font-size:14px;background:var(--lo);padding:8px 10px;line-height:1.45;box-shadow:inset 2px 2px 0 #000;font-variant-numeric:tabular-nums}
 .live .ing{display:flex;align-items:center;gap:6px}
 .live img{width:20px;height:20px;image-rendering:pixelated}
@@ -141,7 +147,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="hint" class="pxbox"></div>
   <div id="areabar" class="pxbox" hidden></div>
   <div id="paused" hidden>PAUS</div>
-  <div id="ver">v2.4</div>
+  <div id="ver">v2.5</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -284,12 +290,15 @@ const GWMAX=30,GHMAX=20;
 const S={money:1000,upg:{},raw:{copper:1},rec:{},unl:{roller:1,starter:1,seller:1},lines:[{grid:new Map(),land:0}],cur:0,total:0,sold:{}};
 const key=(x,y)=>x+','+y;
 const lv=k=>S.upg[k]||0;
-const spawnInt=()=>2*0.9**lv('st_time');
+const spawnInt=(l=lv('st_time'))=>2*0.9**l;
 const maxStarters=()=>4+2*lv('st_max');
-const beltSpeed=()=>1.5*1.15**lv('belt');
-const mTime=t=>t==='cable'?3*0.85**lv('cable'):2*0.85**lv(t);
-const craftTime=()=>3.5*0.85**lv('crafter');
-const refTime=()=>3*0.85**lv('refinery');const radInt=()=>5*0.88**lv('radst');
+const beltSpeed=(l=lv('belt'))=>1.5*1.15**l;
+const mTime=(t,l=lv(t))=>t==='cable'?3*0.85**l:2*0.85**l;
+const craftTime=(l=lv('crafter'))=>3.5*0.85**l;
+const refTime=(l=lv('refinery'))=>3*0.85**l;const radInt=(l=lv('radst'))=>5*0.88**l;
+const UPK={starter:'st_time',radstarter:'radst',wire:'wire',furnace:'furnace',cutter:'cutter',press:'press',cable:'cable',crafter1:'crafter',crafter2:'crafter',crafter3:'crafter',crafter4:'crafter',crafter5:'crafter',refinery:'refinery',roller:'belt'};
+const tl=t=>{const k=UPK[t.t];if(!k)return 0;const m=lv(k),sp=t.cfg&&t.cfg.spd;return sp==null||sp>m?m:Math.max(0,sp);};
+function speedText(type,l){if(type==='roller')return fmt2(beltSpeed(l))+' rutor/s';if(isStarter(type))return fmt2(type==='starter'?spawnInt(l):radInt(l))+' s per råvara';if(type==='refinery')return fmt2(refTime(l))+' s';if(type.startsWith('crafter'))return fmt2(craftTime(l))+' s per produkt';return fmt2(mTime(type,l))+' s';}
 const priceMult=()=>1+0.1*lv('sell');
 const LAND_MAX=6;const landLv=()=>L().land||0;const gw=()=>12+3*landLv(),gh=()=>8+2*landLv();const landCost=()=>Math.round(2000*3.2**landLv());
 const upCost=k=>Math.round(U[k].base*U[k].g**lv(k));
@@ -431,27 +440,27 @@ function sell(item,t){
   if(t.line===L()&&floats.length<60)floats.push({x:t.x*TS+TS/2+(Math.random()*20-10),y:t.y*TS+6-Math.random()*8,txt:'+'+fmt(v),life:1});
 }
 function stepLine(line,dt){
-  const bs=beltSpeed(),si=spawnInt(),ct=craftTime(),outs=new Map();
+  const outs=new Map();
   for(const t of line.grid.values())if(t.t==='tout'){if(!outs.has(t.cfg.ch))outs.set(t.cfg.ch,[]);outs.get(t.cfg.ch).push(t);}
   for(const t of line.grid.values()){
     switch(t.t){
-      case 'roller':if(t.its.length){const its=t.its;let w=0;for(let i=0;i<its.length;i++){const a=its[i];a.prog=Math.min(1,a.prog+bs*dt);if(a.prog>=1&&push(t,a.item,t.d))continue;its[w++]=a;}its.length=w;}break;
-      case 'starter':if(!t.q){t.timer+=dt;if(t.timer>=si){t.q=t.cfg.res;t.timer=0;}}if(t.q&&push(t,t.q,t.d))t.q=null;break;
-      case 'radstarter':if(!t.q){t.timer+=dt;if(t.timer>=radInt()){t.q=t.cfg.res;t.timer=0;}}if(t.q&&push(t,t.q,t.d))t.q=null;break;
+      case 'roller':if(t.its.length){const bsp=beltSpeed(tl(t)),its=t.its;let w=0;for(let i=0;i<its.length;i++){const a=its[i];a.prog=Math.min(1,a.prog+bsp*dt);if(a.prog>=1&&push(t,a.item,t.d))continue;its[w++]=a;}its.length=w;}break;
+      case 'starter':if(!t.q){t.timer+=dt;if(t.timer>=spawnInt(tl(t))){t.q=t.cfg.res;t.timer=0;}}if(t.q&&push(t,t.q,t.d))t.q=null;break;
+      case 'radstarter':if(!t.q){t.timer+=dt;if(t.timer>=radInt(tl(t))){t.q=t.cfg.res;t.timer=0;}}if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'refinery':
-        if(t.inp&&!t.q){t.timer+=dt;if(t.timer>=refTime()){t.q='energy';t.qn=REFINE[t.inp]||1;t.inp=null;t.timer=0;}}
+        if(t.inp&&!t.q){t.timer+=dt;if(t.timer>=refTime(tl(t))){t.q='energy';t.qn=REFINE[t.inp]||1;t.inp=null;t.timer=0;}}
         while(t.q&&push(t,t.q,t.d)){t.qn--;if(t.qn<=0){t.q=null;t.qn=0;}}break;
       case 'wire':case 'furnace':case 'cutter':case 'press':
-        if(t.inp&&!t.q){t.timer+=dt;if(t.timer>=mTime(t.t)){t.q=t.inp+'_'+M[t.t].form;t.inp=null;t.timer=0;}}
+        if(t.inp&&!t.q){t.timer+=dt;if(t.timer>=mTime(t.t,tl(t))){t.q=t.inp+'_'+M[t.t].form;t.inp=null;t.timer=0;}}
         if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'cable':
         if(!t.busy&&!t.q&&t.cb.length===3){t.busy=true;t.timer=0;}
-        if(t.busy){t.timer+=dt;if(t.timer>=mTime('cable')){t.q=RES[t.cb[0]].base+'_cable';t.cb=[];t.busy=false;}}
+        if(t.busy){t.timer+=dt;if(t.timer>=mTime('cable',tl(t))){t.q=RES[t.cb[0]].base+'_cable';t.cb=[];t.busy=false;}}
         if(t.q&&push(t,t.q,t.d))t.q=null;break;
       case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{
         const r=t.cfg.rec&&RECMAP[t.cfg.rec]&&RECMAP[t.cfg.rec].tier<=M[t.t].mk?RECMAP[t.cfg.rec]:null;
         if(r&&!t.q&&!t.busy){let ok=t.energy>=r.en||!M[t.t].rad&&!r.en;for(const k in r.in)if((t.buf[k]||0)<r.in[k]){ok=false;break;}if(ok){for(const k in r.in)t.buf[k]-=r.in[k];if(M[t.t].rad)t.energy-=r.en;t.busy=true;t.timer=0;t.making=r.id;}}
-        if(t.busy){t.timer+=dt;if(t.timer>=ct){t.busy=false;t.q=t.making;}}
+        if(t.busy){t.timer+=dt;if(t.timer>=craftTime(tl(t))){t.busy=false;t.q=t.making;}}
         if(t.q&&push(t,t.q,t.d))t.q=null;break;}
       case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':
         if(t.hold){t.timer+=dt;if(t.timer>=.1){const l=(t.d+3)%4,r=(t.d+1)%4,f=t.d;let o;
@@ -503,23 +512,24 @@ function pbar(g,x,y,f,col){P(g,x+9,y+TS-10,K,TS-18,5);P(g,x+10,y+TS-9,col,(TS-20
 const NODIR=t=>t==='seller'||t==='tin';
 function drawTile(g,t,live){
   const x=t.x*TS,y=t.y*TS,cx=x+TS/2,cy=y+TS/2;
-  if(t.t==='roller'){const f=live?Math.floor(time*16*beltSpeed())&7:0;drawSpr(g,ROLL[f],x,y,t.d);return;}
+  if(t.t==='roller'){const f=live?Math.floor(time*16*beltSpeed(tl(t)))&7:0;drawSpr(g,ROLL[f],x,y,t.d);return;}
   drawSpr(g,SPR[t.t],x,y,NODIR(t.t)?0:t.d);
   const c=t.cfg||{};
   switch(t.t){
-    case 'starter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/spawnInt(),'#7fd0ff');break;
-    case 'radstarter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/radInt(),'#7be35a');break;
-    case 'refinery':if(live&&t.inp){drawIt(g,t.inp,cx,cy,14);pbar(g,x,y,t.timer/refTime(),'#7be35a');}break;
-    case 'wire':case 'furnace':case 'cutter':case 'press':if(live&&t.inp){drawIt(g,t.inp,cx,cy,16);pbar(g,x,y,t.timer/mTime(t.t),Y);}break;
-    case 'cable':if(live){if(t.cb.length)drawIt(g,t.cb[0],cx,cy-2,16);for(let i=0;i<3;i++)P(g,x+16+i*6,y+TS-12,i<t.cb.length?Y:K,4,4);if(t.busy)pbar(g,x,y,t.timer/mTime('cable'),Y);}break;
+    case 'starter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/spawnInt(tl(t)),'#7fd0ff');break;
+    case 'radstarter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/radInt(tl(t)),'#7be35a');break;
+    case 'refinery':if(live&&t.inp){drawIt(g,t.inp,cx,cy,14);pbar(g,x,y,t.timer/refTime(tl(t)),'#7be35a');}break;
+    case 'wire':case 'furnace':case 'cutter':case 'press':if(live&&t.inp){drawIt(g,t.inp,cx,cy,16);pbar(g,x,y,t.timer/mTime(t.t,tl(t)),Y);}break;
+    case 'cable':if(live){if(t.cb.length)drawIt(g,t.cb[0],cx,cy-2,16);for(let i=0;i<3;i++)P(g,x+16+i*6,y+TS-12,i<t.cb.length?Y:K,4,4);if(t.busy)pbar(g,x,y,t.timer/mTime('cable',tl(t)),Y);}break;
     case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':
       if(c.rec)drawIt(g,c.rec,cx,cy-2,24);else{g.fillStyle=Y;g.font='700 22px "Pixelify Sans",monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('?',cx,cy-2);}
-      if(live&&t.busy)pbar(g,x,y,t.timer/craftTime(),'#c7a6ff');
+      if(live&&t.busy)pbar(g,x,y,t.timer/craftTime(tl(t)),'#c7a6ff');
       if(M[t.t].rad){P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/20));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
     case 'lsel':case 'rsel':{const o=t.t==='lsel'?(t.d+3)%4:(t.d+1)%4;drawIt(g,c.res,cx+DIRS[o][0]*13,cy+DIRS[o][1]*13,16);break;}
     case 'msel':drawIt(g,c.l,cx+DIRS[(t.d+3)%4][0]*13,cy+DIRS[(t.d+3)%4][1]*13,16);drawIt(g,c.r,cx+DIRS[(t.d+1)%4][0]*13,cy+DIRS[(t.d+1)%4][1]*13,16);break;
     case 'tin':case 'tout':g.font='26px VT323,monospace';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#000';g.fillText(c.ch,cx+2,cy+2);g.fillStyle=t.t==='tin'?'#d9c2ff':'#ffd6ad';g.fillText(c.ch,cx,cy);break;
   }
+  if(live&&t.cfg&&t.cfg.spd!=null&&UPK[t.t]&&tl(t)<lv(UPK[t.t])){P(g,x+5,y+5,K,8,7);P(g,x+6,y+6,'#7fd0ff',2,5);P(g,x+9,y+6,'#7fd0ff',2,5);}
   if(live&&t.hold)drawIt(g,t.hold,cx,cy,14);
   if(live&&t.q){drawIt(g,t.q,cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);}
   if(live&&t.t==='tout'&&t.oq.length)drawIt(g,t.oq[0],cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);
@@ -628,12 +638,12 @@ function updateHint(){
   hintEl.innerHTML=h;
 }
 function updateAreabar(){
-  if(tool==='area'&&areaTiles().length){const n=areaTiles().length;areabar.innerHTML=`<span>${n} markerade · dra för att flytta</span><button data-a="copy"><kbd>C</kbd>Kopiera</button><button data-a="rotsel"><kbd>R</kbd>Vrid</button><button data-a="empty">Töm</button><button class="red" data-a="del"><kbd>Del</kbd>Riv alla</button><button data-a="cancel"><kbd>Esc</kbd>Avbryt</button>`;areabar.hidden=false;}
+  if(tool==='area'&&areaTiles().length){const n=areaTiles().length;areabar.innerHTML=`<span>${n} markerade · dra för att flytta</span><button data-a="copy"><kbd>C</kbd>Kopiera</button><button data-a="rotsel"><kbd>R</kbd>Vrid</button><button data-a="slow" title="Långsammare"><kbd>,</kbd>Fart −</button><button data-a="fast" title="Snabbare"><kbd>.</kbd>Fart +</button><button data-a="empty">Töm</button><button class="red" data-a="del"><kbd>Del</kbd>Riv alla</button><button data-a="cancel"><kbd>Esc</kbd>Avbryt</button>`;areabar.hidden=false;}
   else if(tool==='paste'&&clip){areabar.innerHTML=`<span>Kopia: ${clip.cells.length} maskiner · ${fmt(clipCost())} kr</span><button data-a="rot"><kbd>R</kbd>Vrid</button><button data-a="cancel"><kbd>Esc</kbd>Klar</button>`;areabar.hidden=false;}
   else areabar.hidden=true;
 }
 areabar.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;beginEdit();
-  if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),'Markerade');else if(a==='rotsel')rotateSel();else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
+  if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),'Markerade');else if(a==='rotsel')rotateSel();else if(a==='slow'||a==='fast'){let n=0;for(const x of areaTiles())if(UPK[x.t]){setSpd(x,tl(x)+(a==='fast'?1:-1));n++;}toast(n+' maskiner '+(a==='fast'?'snabbare':'långsammare'),true);}else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
 let toastT=0;
 function toast(msg,good){const el=$('toast');el.textContent=msg;el.className=good?'good show':'show';clearTimeout(toastT);toastT=setTimeout(()=>el.className=good?'good':'',2300);}
 
@@ -713,6 +723,10 @@ function renderInspector(){
   else if(t.t==='asplit'){h+=`<div class="isec"><h4>Förhållande</h4><div class="ratio">`;
     ['Vänster','Fram','Höger'].forEach((n,i)=>{h+=`<span>${n}</span><span></span><button data-act="rm" data-v="${i}">−</button><b>${c.ratio[i]}</b><button data-act="rp" data-v="${i}">+</button>`;});h+=`</div></div>`;}
   else if(t.t==='tin'||t.t==='tout'){h+=`<div class="isec"><h4>Nummer</h4><div class="chips">`;for(let i=1;i<=9;i++)h+=`<button class="chip${c.ch===i?' on':''}" data-act="ch" data-v="${i}" style="padding:4px 10px">${i}</button>`;h+=`</div></div>`;}
+  if(UPK[t.t]){const m=lv(UPK[t.t]),cur=tl(t),auto=c.spd==null;
+    h+=`<div class="isec"><h4>Hastighet</h4><div class="spd"><button data-act="spdm" ${cur<=0?'disabled':''} aria-label="Långsammare">−</button><div class="spdbar">${Array.from({length:m+1},(_,i)=>`<i class="${i<=cur?'on':''}"></i>`).join('')}</div><button data-act="spdp" ${cur>=m?'disabled':''} aria-label="Snabbare">+</button></div>`+
+      `<div class="spdtxt">${m?`Nivå ${cur} av ${m} · ${speedText(t.t,cur)}`:`${speedText(t.t,0)} · uppgradera för att kunna välja`}</div>`+
+      (m?`<div class="row"><button class="chip${auto?' on':''}" data-act="spdauto">Snabbast (standard)</button><button class="chip${!auto&&cur===0?' on':''}" data-act="spd0">Grundfart</button></div>`:'')+`</div>`;}
   h+=`<div class="isec"><h4>Status</h4><div class="live" id="live"></div></div>`;
   insp.innerHTML=h;insp.hidden=false;updateLive();
 }
@@ -720,12 +734,12 @@ function blockMsg(t){if(!t.q||t.qw<2)return'';const n=nbr(t,t.d);return '<span c
 function updateLive(){
   const t=sel,el=$('live');if(!t||!el)return;let h='';const c=t.cfg;
   switch(t.t){
-    case 'starter':h=`Gör ${RES[c.res].n} var ${fmt2(spawnInt())} s<br>Säljs för ${fmt(RES[c.res].v*priceMult())} kr`;break;
-    case 'radstarter':h=`Gör ${RES[c.res].n} var ${fmt2(radInt())} s<br>Säljs för ${fmt(RES[c.res].v*priceMult())} kr`;break;
-    case 'refinery':h=`Uran → 2 energiceller, plutonium → 3 · ${fmt2(refTime())} s<br>`+(t.inp?`Raffinerar ${RES[t.inp].n}`:t.q?`Lämnar ut ${t.qn} energiceller`:'Väntar på uran eller plutonium')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
+    case 'starter':h=`Gör ${RES[c.res].n} var ${fmt2(spawnInt(tl(t)))} s<br>Säljs för ${fmt(RES[c.res].v*priceMult())} kr`;break;
+    case 'radstarter':h=`Gör ${RES[c.res].n} var ${fmt2(radInt(tl(t)))} s<br>Säljs för ${fmt(RES[c.res].v*priceMult())} kr`;break;
+    case 'refinery':h=`Uran → 2 energiceller, plutonium → 3 · ${fmt2(refTime(tl(t)))} s<br>`+(t.inp?`Raffinerar ${RES[t.inp].n}`:t.q?`Lämnar ut ${t.qn} energiceller`:'Väntar på uran eller plutonium')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'seller':h=`Betalar ${Math.round(priceMult()*100)} % av grundpriset`;break;
-    case 'wire':case 'furnace':case 'cutter':case 'press':{const f=M[t.t].form;h=`Råvara → ${FORMS[f].nm('…')} · ${fmt2(mTime(t.t))} s<br>`+(t.inp?`Gör ${RES[t.inp+'_'+f].n}`:'Väntar på en råvara')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;}
-    case 'cable':h=`3 trådar → kabel · ${fmt2(mTime('cable'))} s<br>Har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:'trådar'}`+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
+    case 'wire':case 'furnace':case 'cutter':case 'press':{const f=M[t.t].form;h=`Råvara → ${FORMS[f].nm('…')} · ${fmt2(mTime(t.t,tl(t)))} s<br>`+(t.inp?`Gör ${RES[t.inp+'_'+f].n}`:'Väntar på en råvara')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;}
+    case 'cable':h=`3 trådar → kabel · ${fmt2(mTime('cable',tl(t)))} s<br>Har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:'trådar'}`+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{const r=c.rec&&RECMAP[c.rec];if(!r){h='Ingen ritning vald';break;}
       h=`<b>${r.n}</b> · ${fmt(r.v*priceMult())} kr`;if(M[t.t].rad)h+=`<div class="ing"><img alt="" src="${itemIcon('energy')}"><span class="${t.energy>=r.en?'ok':''}">${t.energy}/20</span> energi (ritningen kräver ${r.en})</div>`;for(const k in r.in){const have=t.buf[k]||0;h+=`<div class="ing"><img alt="" src="${itemIcon(k)}"><span class="${have>=r.in[k]?'ok':''}">${have}/${r.in[k]}</span> ${RES[k].n}</div>`;}
       if(t.wrong&&time-t.wrongAt<1.5)h+=`<div class="warn">${RES[t.wrong].n} ingår inte i ritningen och står i vägen. Töm bandet eller maskinen före.</div>`;
@@ -738,7 +752,7 @@ function updateLive(){
     case 'msel':h=`${RES[c.l].n} åt vänster<br>${RES[c.r].n} åt höger`;break;
     case 'tin':{const n=[...t.line.grid.values()].filter(o=>o.t==='tout'&&o.cfg.ch===c.ch).length;h=`Skickar till ${n} transportör ut med nummer ${c.ch}`+(n?'':'<br><span class="warn">Ingen mottagare</span>');break;}
     case 'tout':h=`Tar emot från nummer ${c.ch}`;break;
-    case 'roller':{h=`${fmt2(beltSpeed())} rutor/s · ${t.its.length} saker`;const stuck=t.its.filter(a=>a.prog>=1);if(stuck.length){const n=nbr(t,t.d);
+    case 'roller':{h=`${fmt2(beltSpeed(tl(t)))} rutor/s · ${t.its.length} saker`;const stuck=t.its.filter(a=>a.prog>=1);if(stuck.length){const n=nbr(t,t.d);
       h+='<br><span class="warn">'+(!n?'Bandet slutar här. Inget tar emot.':['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&n.d!==t.d?M[n.t].n+' tar bara emot bakifrån.':n.t==='roller'&&(n.d+2)%4===t.d?'Nästa band pekar tillbaka hit.':M[n.t].n+' tar inte emot '+RES[stuck[0].item].n+' just nu.')+'</span>';}break;}
   }
   el.innerHTML=h;
@@ -756,8 +770,14 @@ function inspClick(e){
   else if(a==='res')t.cfg.res=v;else if(a==='ml')t.cfg.l=v;else if(a==='mr')t.cfg.r=v;
   else if(a==='rp')t.cfg.ratio[+v]=Math.min(9,t.cfg.ratio[+v]+1);else if(a==='rm')t.cfg.ratio[+v]=Math.max(0,t.cfg.ratio[+v]-1);
   else if(a==='ch')t.cfg.ch=+v;
+  else if(a==='spdm'||a==='spdp')setSpd(t,tl(t)+(a==='spdp'?1:-1));
+  else if(a==='spdauto')delete t.cfg.spd;
+  else if(a==='spd0')t.cfg.spd=0;
   renderInspector();
 }
+function customSpeeds(){const out=[];for(const l of S.lines)for(const t of l.grid.values())if(t.cfg.spd!=null)out.push(t);return out;}
+function resetSpeeds(){const ts=customSpeeds();for(const t of ts)delete t.cfg.spd;return ts.length;}
+function setSpd(t,l){const k=UPK[t.t];if(!k)return;const m=lv(k);l=Math.max(0,Math.min(m,l));if(l>=m)delete t.cfg.spd;else t.cfg.spd=l;}
 function copyFrom(t){copyCfg={t:t.t,cfg:JSON.parse(JSON.stringify(t.cfg))};setTool('select');placeDir=t.d;if(t.t==='starter')lastStarterRes=t.cfg.res;setTool(t.t);toast('Kopierade '+M[t.t].n,true);}
 
 /* lines */
@@ -792,7 +812,8 @@ function renderPanel(){
         h+=`<div class="card${on?' done':''}"><div class="ch"><img alt="" src="${machIcon(t)}"><b>${m.n}</b><span class="lvl"><kbd>${m.key}</kbd></span></div><p>${m.d}</p><div class="meta">Byggpris: ${fmt(machineCost(t))} kr</div>${on?'<button disabled>Upplåst</button>':`<button class="gold" data-unl="${t}" data-cost="${m.unlock}">Lås upp · ${fmt(m.unlock)} kr</button>`}</div>`;}
       h+='</div>';}
   } else if(panel==='upg'){
-    h=head('Uppgraderingar');const grps=[...new Set(Object.values(U).map(u=>u.grp))];
+    h=head('Uppgraderingar');const grps=[...new Set(Object.values(U).map(u=>u.grp))];const nsp=customSpeeds().length;
+    h+=`<div class="row" style="margin-bottom:4px"><span style="color:var(--muted)">Maskiner du inte har ändrat kör alltid så snabbt som dina uppgraderingar tillåter.${nsp?` ${nsp} maskiner har en egen hastighet.`:''}</span>${nsp?`<button data-act="resetspd" data-label="Återställ alla hastigheter">Återställ alla hastigheter</button>`:''}</div>`;
     for(const gname of grps){h+=`<h3>${gname}</h3><div class="cards">`;
       for(const k in U){const u=U[k];if(u.grp!==gname)continue;const l=lv(k),max=l>=u.max,c=upCost(k),locked=u.req&&!S.unl[u.req];
         h+=`<div class="card${max?' done':''}${locked?' locked':''}"><div class="ch">${u.req?`<img alt="" src="${machIcon(u.req)}">`:''}<b>${u.n}</b><span class="lvl">${l}/${u.max}</span></div><div class="fx">${u.fx(l)}${max?'':' → <span class="ok">'+u.fx(l+1)+'</span>'}</div>${locked?`<button disabled>Lås upp ${M[u.req].n} först</button>`:`<button class="gold" data-buy="${k}" data-cost="${max?'':c}" ${max?'disabled':''}>${max?'Max':'Köp · '+fmt(c)+' kr'}</button>`}</div>`;}
@@ -832,7 +853,7 @@ function renderPanel(){
 <dt><kbd>1</kbd>–<kbd>0</kbd> <kbd>F</kbd> <kbd>G</kbd></dt><dd>Välj maskin. Tryck igen för nästa variant.</dd>
 <dt><kbd>Q</kbd> / <kbd>Esc</kbd></dt><dd>Välj-verktyg, stäng</dd><dt><kbd>X</kbd></dt><dd>Riv</dd><dt><kbd>V</kbd></dt><dd>Markera. Klicka en maskin för att markera eller avmarkera den, dra en ruta för många (Shift lägger till). Dra en markerad maskin för att flytta allt, <b>R</b> vrider allt markerat.</dd><dt>Dra en maskin</dt><dd>Flytta den (med Välj-verktyget <kbd>Q</kbd>)</dd>
 <dt><kbd>R</kbd></dt><dd>Vrid</dd><dt><kbd>C</kbd></dt><dd>Kopiera maskin under pekaren</dd><dt><kbd>E</kbd></dt><dd>Inställningar för maskin under pekaren</dd>
-<dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Ångra (upp till 40 steg). <kbd>Ctrl</kbd>+<kbd>Y</kbd> gör om.</dd><dt><kbd>Delete</kbd></dt><dd>Riv maskin under pekaren</dd><dt><kbd>Shift</kbd>+<kbd>T</kbd></dt><dd>Töm maskinen eller bandet under pekaren</dd><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Flytta vyn (även pilar)</dd>
+<dt><kbd>,</kbd> <kbd>.</kbd></dt><dd>Långsammare / snabbare för maskinen under pekaren eller allt markerat. Även i maskinens inställningar.</dd><dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Ångra (upp till 40 steg). <kbd>Ctrl</kbd>+<kbd>Y</kbd> gör om.</dd><dt><kbd>Delete</kbd></dt><dd>Riv maskin under pekaren</dd><dt><kbd>Shift</kbd>+<kbd>T</kbd></dt><dd>Töm maskinen eller bandet under pekaren</dd><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Flytta vyn (även pilar)</dd>
 <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Zooma (även scroll)</dd><dt><kbd>Space</kbd></dt><dd>Centrera</dd><dt><kbd>L</kbd></dt><dd>Nästa linje</dd><dt><kbd>P</kbd></dt><dd>Paus</dd>
 <dt><kbd>M</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>I</kbd> <kbd>T</kbd></dt><dd>Maskiner, uppgraderingar, ritningar, priser, statistik</dd></dl></div>
 <div><h3>Säkerhetskopia</h3><p>Spelet sparas själv i webbläsaren. Kopiera koden nedan och spara den någonstans för att ta med fabriken till en annan dator.</p>
@@ -860,6 +881,7 @@ modal.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const a=b.dataset.act;
   if(a==='close'){closePanel();return;}
   if(a==='reset'){confirmBtn(b,()=>{newGame();closePanel();toast('Ny fabrik startad',true);});return;}
+  if(a==='resetspd'){confirmBtn(b,()=>{const n=resetSpeeds();toast(n+' maskiner kör nu så snabbt som möjligt',true);renderPanel();if(sel)renderInspector();});return;}
   if(a==='clearline'){confirmBtn(b,()=>{let v=0;for(const t of L().grid.values())v+=t.paid;L().grid=new Map();S.money+=v;closeInspector();closePanel();toast('Linjen rensad, +'+fmt(v)+' kr',true);});return;}
   if(a==='copyexp'){const ta=$('exp');const done=()=>toast('Koden är kopierad',true);
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(done,()=>{ta.focus();ta.select();toast('Tryck Ctrl+C för att kopiera',true);});else{ta.focus();ta.select();toast('Tryck Ctrl+C för att kopiera',true);}return;}
@@ -943,6 +965,8 @@ window.addEventListener('keydown',e=>{
     case 'r':if(tool==='paste'){rotClip();}else if(tool==='area'&&areaTiles().length){rotateSel();}else if(M[tool]){placeDir=(placeDir+1)%4;updateHint();}else{const t=ht||sel;if(t&&!NODIR(t.t))t.d=(t.d+1)%4;}break;
     case 'c':if(tool==='area'&&areaTiles().length)copyArea();else if(ht)copyFrom(ht);break;
     case 'e':if(ht)openInspector(ht);break;
+    case '[':case ']':case ',':case '.':{const up=k===']'||k==='.';const ts=tool==='area'&&areaTiles().length?areaTiles():[ht||sel].filter(Boolean);let n=0;for(const x of ts)if(UPK[x.t]){setSpd(x,tl(x)+(up?1:-1));n++;}
+      if(n){if(sel)renderInspector();const f=ts.find(x=>UPK[x.t]);toast(n>1?n+' maskiner '+(up?'snabbare':'långsammare'):M[f.t].n+': '+(lv(UPK[f.t])?'nivå '+tl(f)+' av '+lv(UPK[f.t]):'ingen uppgradering än'),true);}break;}
     case 'l':switchLine((S.cur+1)%S.lines.length);break;
     case '+':case '=':zoomAt(1.15,W/2,H/2);break;
     case '-':zoomAt(1/1.15,W/2,H/2);break;
