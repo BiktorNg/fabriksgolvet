@@ -51,7 +51,8 @@ kbd{font-family:var(--px);font-weight:700;font-size:11px;background:#111;color:v
 .tool.lock{opacity:.6}
 .tool.lock img{filter:grayscale(1) brightness(.6)}
 .tool.lock .tc{color:var(--gold)}
-@media (max-width:1320px){.navbtns kbd{display:none}.tool{width:72px}.tools{gap:5px}.grp .gb{gap:5px}}
+@media (max-width:1560px){.navbtns kbd{display:none}}
+@media (max-width:1320px){.tool{width:72px}.tools{gap:5px}.grp .gb{gap:5px}}
 @media (max-width:1400px){.navbtns button{padding:6px 7px}.navbtns kbd{margin-right:4px}.bar{gap:10px}.stat{padding:3px 8px}.num{font-size:23px}.money .num{font-size:26px}}
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#101114}
 #floor{display:block;position:absolute;inset:0;cursor:crosshair;touch-action:none;image-rendering:pixelated}
@@ -121,8 +122,10 @@ th{font-family:var(--head);font-size:10px;color:var(--muted);font-weight:400}
 td.v{font-family:var(--num);font-size:19px;letter-spacing:.02em;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;color:var(--money)}
 td img{width:24px;height:24px;vertical-align:middle;margin-right:6px;image-rendering:pixelated}
 .locked{opacity:.4}
-.help{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
-.help dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;align-items:baseline}
+.help{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.help>div{min-width:0}
+.help dd{min-width:0;overflow-wrap:anywhere}
+.help dl{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:6px 12px;margin:0;align-items:baseline}
 .help dt{white-space:nowrap}
 .help dd{margin:0;color:var(--muted)}
 .help p,.help li{color:var(--muted);line-height:1.4;max-width:65ch}
@@ -173,7 +176,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="paused" hidden>PAUS</div>
   <div id="zoom"><button id="zin" title="Zooma in (+)" aria-label="Zooma in">+</button><span class="zl" id="zlv">100%</span><button id="zout" title="Zooma ut (−)" aria-label="Zooma ut">−</button><button id="zfit" class="small" title="Visa hela linjen (mellanslag)" aria-label="Visa hela linjen">Hela</button></div>
   <div id="achtoast" role="status"></div>
-  <div id="ver">v3.0</div>
+  <div id="ver">v3.1</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
