@@ -246,7 +246,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v3.6.1</div>
+  <div id="ver">v3.6.2</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -1448,7 +1448,7 @@ function ordGen(){
   let r=Math.random()*tot,id=c[0];for(let i=0;i<c.length;i++){r-=w[i];if(r<=0){id=c[i];break;}}
   const dur=[180,240,300][Math.floor(Math.random()*3)];
   const qty=Math.max(5,Math.round(ema[id]*dur*(1.25+Math.random()*.35)));
-  const reward=niceRound(Math.max(qty*RES[id].v*priceMult()*.8,currentRate()*dur*.2,150));
+  const reward=Math.max(1,Math.round(qty*RES[id].v*priceMult()*.5));
   return{st:'offer',item:id,qty,got:0,dur,left:60,reward};
 }
 function ordTick(dt){
