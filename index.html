@@ -245,7 +245,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v3.6</div>
+  <div id="ver">v3.6.1</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -415,27 +415,27 @@ const ACH=[
  {id:'sell1',n:tr('Första försäljningen','First sale'),d:tr('Sälj något.','Sell anything.'),r:200,p:()=>[Object.values(S.sold).reduce((a,b)=>a+b,0),1]},
  {id:'proc1',n:tr('Förädlare','Refiner'),d:tr('Sälj 50 bearbetade varor (tråd, plåt, kugghjul eller flytande).','Sell 50 processed goods (wire, plate, gear or liquid).'),r:1000,p:()=>[Object.entries(S.sold).filter(([k])=>['liquid','gear','wire','plate'].includes(RES[k]&&RES[k].kind)).reduce((a,[,v])=>a+v,0),50]},
  {id:'prod1',n:tr('Första produkten','First product'),d:tr('Sälj en produkt från en hantverkare.','Sell a product from a crafter.'),r:3000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product').reduce((a,[,v])=>a+v,0),1]},
- {id:'motor100',n:tr('Motorvärk','Motor mania'),d:tr('Sälj 100 motorer.','Sell 100 motors.'),r:15000,p:()=>[S.sold.motor||0,100]},
+ {id:'motor100',n:tr('Motorvärk','Motor mania'),d:tr('Sälj 100 motorer.','Sell 100 motors.'),r:5000,p:()=>[S.sold.motor||0,100]},
  {id:'rate1k',n:tr('Rullande','On a roll'),d:tr('Tjäna 1 000 kr/s.','Earn $1,000/s.'),r:20000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1000]},
  {id:'mil',n:tr('Miljonär','Millionaire'),d:tr('Tjäna 1 M kr totalt.','Earn $1M in total.'),r:50000,p:()=>[S.total,1e6]},
- {id:'cable50',n:tr('Kabeldragare','Wired up'),d:tr('Sälj 50 kablar.','Sell 50 cables.'),r:60000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='cable').reduce((a,[,v])=>a+v,0),50]},
- {id:'line2',n:'Expansion',d:tr('Köp en andra linje.','Buy a second line.'),r:100000,p:()=>[S.lines.length,2]},
- {id:'rate10k',n:tr('Fart','Speed'),d:tr('Tjäna 10 000 kr/s.','Earn $10,000/s.'),r:250000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e4]},
- {id:'circ500',n:tr('Kretsarnas mästare','Circuit master'),d:tr('Sälj 500 kretskort.','Sell 500 circuit boards.'),r:300000,p:()=>[S.sold.circuit||0,500]},
- {id:'upg50',n:tr('Uppgraderare','Upgrader'),d:tr('Nå 50 uppgraderingsnivåer totalt.','Reach 50 upgrade levels in total.'),r:500000,p:()=>[Object.values(S.upg).reduce((a,b)=>a+b,0),50]},
- {id:'land',n:tr('Stor fabrik','Big factory'),d:tr('Bygg ut en linje till största ytan.','Expand a line to the largest size.'),r:1e6,p:()=>[Math.max(...S.lines.map(l=>l.land||0)),6]},
- {id:'robot',n:tr('Robotåldern','Robot age'),d:tr('Sälj en robot.','Sell a robot.'),r:2e6,p:()=>[S.sold.robot||0,1]},
- {id:'rate100k',n:tr('Industrijätte','Industrial giant'),d:tr('Tjäna 100 000 kr/s.','Earn $100,000/s.'),r:5e6,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e5]},
- {id:'sat',n:tr('Ut i rymden','Into orbit'),d:tr('Sälj en satellit.','Sell a satellite.'),r:8e6,p:()=>[S.sold.satellite||0,1]},
- {id:'rad1',n:tr('Strålande','Glowing'),d:tr('Sälj en radioaktiv produkt.','Sell a radioactive product.'),r:15e6,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product'&&RES[k].tier>=4).reduce((a,[,v])=>a+v,0),1]},
- {id:'waste',n:tr('Ansvarsfull','Responsible'),d:tr('Ta hand om 500 radioaktivt avfall.','Dispose of 500 radioactive waste.'),r:20e6,p:()=>[S.stats.waste||0,500]},
- {id:'link',n:tr('Sammankopplad','Connected'),d:tr('Skicka 100 saker mellan linjer.','Send 100 items between lines.'),r:25e6,p:()=>[S.stats.linked||0,100]},
+ {id:'cable50',n:tr('Kabeldragare','Wired up'),d:tr('Sälj 50 kablar.','Sell 50 cables.'),r:6000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='cable').reduce((a,[,v])=>a+v,0),50]},
+ {id:'line2',n:'Expansion',d:tr('Köp en andra linje.','Buy a second line.'),r:30000,p:()=>[S.lines.length,2]},
+ {id:'rate10k',n:tr('Fart','Speed'),d:tr('Tjäna 10 000 kr/s.','Earn $10,000/s.'),r:100000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e4]},
+ {id:'circ500',n:tr('Kretsarnas mästare','Circuit master'),d:tr('Sälj 500 kretskort.','Sell 500 circuit boards.'),r:50000,p:()=>[S.sold.circuit||0,500]},
+ {id:'upg50',n:tr('Uppgraderare','Upgrader'),d:tr('Nå 50 uppgraderingsnivåer totalt.','Reach 50 upgrade levels in total.'),r:150000,p:()=>[Object.values(S.upg).reduce((a,b)=>a+b,0),50]},
+ {id:'land',n:tr('Stor fabrik','Big factory'),d:tr('Bygg ut en linje till största ytan.','Expand a line to the largest size.'),r:250000,p:()=>[Math.max(...S.lines.map(l=>l.land||0)),6]},
+ {id:'robot',n:tr('Robotåldern','Robot age'),d:tr('Sälj en robot.','Sell a robot.'),r:400000,p:()=>[S.sold.robot||0,1]},
+ {id:'rate100k',n:tr('Industrijätte','Industrial giant'),d:tr('Tjäna 100 000 kr/s.','Earn $100,000/s.'),r:2e6,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e5]},
+ {id:'sat',n:tr('Ut i rymden','Into orbit'),d:tr('Sälj en satellit.','Sell a satellite.'),r:2e6,p:()=>[S.sold.satellite||0,1]},
+ {id:'rad1',n:tr('Strålande','Glowing'),d:tr('Sälj en radioaktiv produkt.','Sell a radioactive product.'),r:5e6,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product'&&RES[k].tier>=4).reduce((a,[,v])=>a+v,0),1]},
+ {id:'waste',n:tr('Ansvarsfull','Responsible'),d:tr('Ta hand om 500 radioaktivt avfall.','Dispose of 500 radioactive waste.'),r:5e6,p:()=>[S.stats.waste||0,500]},
+ {id:'link',n:tr('Sammankopplad','Connected'),d:tr('Skicka 100 saker mellan linjer.','Send 100 items between lines.'),r:5e6,p:()=>[S.stats.linked||0,100]},
  {id:'bil',n:tr('Miljardär','Billionaire'),d:tr('Tjäna 1 Md kr totalt.','Earn $1B in total.'),r:50e6,p:()=>[S.total,1e9]},
- {id:'lines5',n:tr('Imperium','Empire'),d:tr('Ha fem linjer.','Own five lines.'),r:80e6,p:()=>[S.lines.length,5]},
- {id:'bp',n:tr('Ritningssamlare','Blueprint collector'),d:tr('Lås upp alla ritningar.','Unlock all blueprints.'),r:150e6,p:()=>[RECIPES.filter(r=>S.rec[r.id]).length,RECIPES.length]},
- {id:'android',n:tr('Konstgjord intelligens','Artificial intelligence'),d:tr('Sälj en android.','Sell an android.'),r:300e6,p:()=>[S.sold.android||0,1]},
- {id:'station',n:tr('Rymdstation','Space station'),d:tr('Sälj en rymdstation.','Sell a space station.'),r:500e6,p:()=>[S.sold.station||0,1]},
- {id:'time',n:tr('Tidsresenär','Time traveler'),d:tr('Sälj en tidsmaskin.','Sell a time machine.'),r:1e9,p:()=>[S.sold.timemachine||0,1]}
+ {id:'lines5',n:tr('Imperium','Empire'),d:tr('Ha fem linjer.','Own five lines.'),r:5e7,p:()=>[S.lines.length,5]},
+ {id:'bp',n:tr('Ritningssamlare','Blueprint collector'),d:tr('Lås upp alla ritningar.','Unlock all blueprints.'),r:6e7,p:()=>[RECIPES.filter(r=>S.rec[r.id]).length,RECIPES.length]},
+ {id:'android',n:tr('Konstgjord intelligens','Artificial intelligence'),d:tr('Sälj en android.','Sell an android.'),r:1.5e8,p:()=>[S.sold.android||0,1]},
+ {id:'station',n:tr('Rymdstation','Space station'),d:tr('Sälj en rymdstation.','Sell a space station.'),r:2e8,p:()=>[S.sold.station||0,1]},
+ {id:'time',n:tr('Tidsresenär','Time traveler'),d:tr('Sälj en tidsmaskin.','Sell a time machine.'),r:4e8,p:()=>[S.sold.timemachine||0,1]}
 ];
 function checkAch(){for(const a of ACH){if(S.ach[a.id])continue;const[c,g]=a.p();if(c>=g){S.ach[a.id]=1;S.money+=a.r;S.total+=a.r;achToast(a);if(CG&&['sat','android','station','time'].includes(a.id))CG.happy();}}}
 function achToast(a){if(typeof tutOn==='function'&&tutOn())return;sfx('ach');const el=$('achtoast');el.innerHTML=tr(`<b>Uppdrag klart</b><span>${a.n}</span><em>+${cash(a.r)}</em>`,`<b>Goal complete</b><span>${a.n}</span><em>+${cash(a.r)}</em>`);el.classList.add('show');clearTimeout(achToast.t);achToast.t=setTimeout(()=>el.classList.remove('show'),3500);if(panel==='ach')renderPanel();}
