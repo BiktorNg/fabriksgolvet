@@ -247,7 +247,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v4.0</div>
+  <div id="ver">v4.1</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -1033,7 +1033,7 @@ function switchLine(i){S.cur=i;closeInspector();selT.clear();floats.length=0;ren
 /* panels */
 let panel=null;
 function openPanel(p){panel=p;modal.hidden=false;renderPanel();}
-function closePanel(){panel=null;modal.hidden=true;if(typeof tutRender==='function')tutRender();}
+function closePanel(){const was=panel;panel=null;modal.hidden=true;if(S.nc&&was!=='start'&&!practice){openPanel('start');return;}if(typeof tutRender==='function')tutRender();}
 const head=t=>tr(`<div class="shh"><h2>${t}</h2><span class="spacer"></span><button data-act="close"><kbd>Q</kbd>Stäng</button></div>`,`<div class="shh"><h2>${t}</h2><span class="spacer"></span><button data-act="close"><kbd>Q</kbd>Close</button></div>`);
 function renderPanel(){
   let h='';
@@ -1151,8 +1151,8 @@ modal.addEventListener('click',e=>{
   if(e.target===modal){if(panel==='start')return;closePanel();return;}
   const b=e.target.closest('button');if(!b)return;const a=b.dataset.act;
   if(a==='restarttut'){confirmBtn(b,()=>startPractice());return;}
-  if(a==='startguide'){newGame(true);closePanel();save();return;}
-  if(a==='startfree'){closePanel();toast(tr('Tryck H för hjälp. Lås upp maskiner med M.','Press H for help. Unlock machines with M.'),true);return;}
+  if(a==='startguide'){S.nc=0;newGame(true);closePanel();save();return;}
+  if(a==='startfree'){S.nc=0;closePanel();save();toast(tr('Tryck H för hjälp. Lås upp maskiner med M.','Press H for help. Unlock machines with M.'),true);return;}
   if(a==='close'){closePanel();return;}
   if(practice&&(a==='reset'||a==='import')){toast(tr('Avsluta övningen först','Finish the practice first'));return;}
   if(a==='reset'){confirmBtn(b,()=>{newGame(false);openPanel('start');});return;}
@@ -1193,7 +1193,7 @@ const TUT=[
  {p:3,h:tr('Startare för koppar','A starter for copper'),t:()=>!at(5,0)?tr('Tryck <kbd>2</kbd> och bygg en startare här.','Press <kbd>2</kbd> and build a starter here.'):tr('Klicka på den markerade startaren och välj <b>Koppar</b>.','Click the marked starter and choose <b>Copper</b>.'),slot:()=>!at(5,0)?0:(insp.hidden||sel!==at(5,0)?'select':null),tiles:[{x:5,y:0,t:'starter',d:0,res:'copper'}],insp:'[data-act=sres][data-v=copper]',ok:()=>isT(5,0,'starter',0,'copper')},
  {p:3,h:tr('Tråd ovanifrån','Wire from above'),t:tr('Tryck <kbd>4</kbd>, sedan <kbd>R</kbd> tills pilen pekar <b>nedåt</b>. Bygg här.','Press <kbd>4</kbd>, then <kbd>R</kbd> until the arrow points <b>down</b>. Build here.'),tip:tr('Hantverkaren tar emot från alla sidor utom utgången.','The crafter accepts from every side except its output.'),slot:2,tiles:[{x:6,y:0,t:'wire',d:1}],ok:()=>isT(6,0,'wire',1)},
  {p:3,h:tr('Första motorn','The first motor'),t:()=>{const c=at(6,1);const b=c&&c.buf||{};return tr(`Vänta medan hantverkaren bygger.<div class="tutm">Kugghjul ${Math.min(b.iron_gear||0,2)}/2 · Tråd ${Math.min(b.copper_wire||0,1)}/1</div>`,`Wait while the crafter builds.<div class="tutm">Gears ${Math.min(b.iron_gear||0,2)}/2 · Wire ${Math.min(b.copper_wire||0,1)}/1</div>`);},frames:[[6,1]],ok:()=>(S.sold.motor||0)>=1},
- {p:3,h:tr('Klart!','Done!'),t:()=>practice?tr('Tryck på knappen för att gå tillbaka till din fabrik.','Press the button to go back to your factory.'):tr('Fler maskiner och ritningar finns under <kbd>M</kbd> och <kbd>B</kbd>. <kbd>O</kbd> visar uppdrag.','More machines and blueprints are under <kbd>M</kbd> and <kbd>B</kbd>. <kbd>O</kbd> shows goals.'),next:()=>practice?tr('Tillbaka till min fabrik','Back to my factory'):tr('Spela vidare','Keep playing'),end:1}
+ {p:3,h:tr('Klart!','Done!'),t:()=>practice?tr('Vill du gå tillbaka till din gamla fabrik, eller fortsätta med den här nya?','Do you want to go back to your old factory, or keep playing with this new one?'):tr('Fler maskiner och ritningar finns under <kbd>M</kbd> och <kbd>B</kbd>. <kbd>O</kbd> visar uppdrag.','More machines and blueprints are under <kbd>M</kbd> and <kbd>B</kbd>. <kbd>O</kbd> shows goals.'),next:()=>practice?tr('Tillbaka till min fabrik','Back to my factory'):tr('Spela vidare','Keep playing'),end:1}
 ];
 const PARTS={1:tr('Grunderna','The basics'),2:tr('Förädla','Processing'),3:tr('Bygga en produkt','Building a product')};
 const tutEl=$('tut');let tutArm=false;
@@ -1225,11 +1225,12 @@ function tutRender(){
    (fixing?tr(`<h3>Rätta till först</h3>`,`<h3>Fix this first</h3>`)+tutFix(r):`<h3>${st.h}</h3><p>${tval(st.t)}</p>`+(tip?`<p class="tutc">${tip}</p>`:'')+tutMoney(st))+
    (S.cur!==0?tr(`<p class="warn">Guiden gäller linje 1. Tryck <kbd>L</kbd>.</p>`,`<p class="warn">The guide is on line 1. Press <kbd>L</kbd>.</p>`):'')+
    (practice?tr(`<div class="tutprac">Övning. Din riktiga fabrik är sparad.</div>`,`<div class="tutprac">Practice. Your real factory is saved.</div>`):'')+
-   tr(`<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'Avsluta övningen':'Hoppa över guiden'}</button>`}</div>`,`<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'End practice':'Skip the guide'}</button>`}</div>`);
+   tr(`<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end&&practice&&!r.any?`<button data-tut="keep">${Date.now()-keepArm<3500?tr('Klicka igen: din gamla fabrik ersätts','Click again: your old factory is replaced'):tr('Fortsätt med den här','Keep this one')}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'Avsluta övningen':'Hoppa över guiden'}</button>`}</div>`,`<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end&&practice&&!r.any?`<button data-tut="keep">${Date.now()-keepArm<3500?tr('Klicka igen: din gamla fabrik ersätts','Click again: your old factory is replaced'):tr('Fortsätt med den här','Keep this one')}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'End practice':'Skip the guide'}</button>`}</div>`);
   tutEl.hidden=false;const dock=!modal.hidden;tutEl.classList.toggle('docked',dock);modal.classList.toggle('tutpad',dock);
 }
 tutEl.addEventListener('click',e=>{const b=e.target.closest('[data-tut]');if(!b)return;
   if(b.dataset.tut==='next'){if(!tutIssues().any)tutAdvance();}
+  else if(b.dataset.tut==='keep'){if(Date.now()-keepArm>3500){keepArm=Date.now();tutRender();return;}keepArm=0;keepPractice();}
   else if(b.dataset.tut==='skip'){if(!tutArm){tutArm=true;b.textContent=practice?tr('Klicka igen för att gå tillbaka','Click again to go back'):tr('Klicka igen för att hoppa över','Click again to skip');setTimeout(()=>{tutArm=false;if(b.isConnected)b.textContent=practice?tr('Avsluta övningen','End practice'):tr('Hoppa över guiden','Skip the guide');},3000);return;}if(practice){endPractice();return;}S.tut.done=1;const g0=S.lines[0];if(!g0.grid.size){g0.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,g0));for(let x=3;x<=6;x++)g0.grid.set(key(x,3),mk('roller',x,3,0,null,10,g0));g0.grid.set(key(7,3),mk('seller',7,3,0,null,100,g0));}centerCam();tutRender();tutHL();save();}});
 function tutAdvance(){sfx('step');const st=TUT[S.tut.i];if(st.reward){S.money+=st.reward;S.total+=st.reward;toast(tr('Del ','Part ')+st.p+tr(' klar! +',' done! +')+cash(st.reward)+(st.rewardTxt?' '+st.rewardTxt:''),true);}
   if(st.end){if(practice){endPractice();return;}S.tut.done=1;centerCam();}else S.tut.i++;tutRender();tutHL();save();}
@@ -1324,7 +1325,7 @@ window.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   if(['arrowup','arrowdown','arrowleft','arrowright',' ','tab'].includes(k))e.preventDefault();
   if(k==='q'&&modal.hidden){if(sel)closeInspector();copyCfg=null;clip=null;setTool('select');return;}
-  if(k==='escape'||k==='q'){if(!modal.hidden)closePanel();else if(sel)closeInspector();else if(tool==='area'&&selT.size){selT.clear();updateAreabar();}else{copyCfg=null;clip=null;setTool('select');}return;}
+  if(k==='escape'||k==='q'){if(!modal.hidden){if(panel!=='start')closePanel();}else if(sel)closeInspector();else if(tool==='area'&&selT.size){selT.clear();updateAreabar();}else{copyCfg=null;clip=null;setTool('select');}return;}
   if(k==='t'&&e.shiftKey&&modal.hidden){const ht0=hover&&tileAt(hover[0],hover[1]);if(ht0){clearTiles([ht0],M[ht0.t].n);if(sel===ht0)renderInspector();}return;}
   const pmap={m:'mach',u:'upg',b:'bp',i:'info',t:'stats',h:'help',o:'ach'};
   if(!modal.hidden){if(pmap[k])panel===pmap[k]?closePanel():openPanel(pmap[k]);return;}
@@ -1356,19 +1357,21 @@ window.addEventListener('blur',()=>keys.clear());
 
 /* ============ SAVE ============ */
 const SAVE_KEY='fabriksgolvet-v2';
-function serialize(){return{v:2,tut:S.tut,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,ord:S.ord||null,on:S.ordNext==null?null:Math.round(S.ordNext),hist:S.hist||{s:[],l:[]},rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
+function serialize(){return{v:2,tut:S.tut,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,nc:S.nc?1:0,ord:S.ord||null,on:S.ordNext==null?null:Math.round(S.ordNext),hist:S.hist||{s:[],l:[]},rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
   lines:S.lines.map(l=>({land:l.land||0,tiles:[...l.grid.values()].map(t=>[t.t,t.x,t.y,t.d,t.cfg,t.paid])}))};}
 const PRACT_KEY=SAVE_KEY+'-practice-backup';let practice=null;
 function save(){if(practice)return;try{STORE.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
 function exportCode(){try{return btoa(unescape(encodeURIComponent(practice?practice.backup:JSON.stringify(serialize()))));}catch(e){return'';}}
 function startPractice(){const backup=JSON.stringify(serialize());try{STORE.setItem(SAVE_KEY,backup);STORE.setItem(PRACT_KEY,backup);}catch(e){}
   practice={backup,t:Date.now()};closePanel();newGame(true);toast(tr('Övning startad. Din riktiga fabrik är sparad.','Practice started. Your real factory is saved.'),true);}
+let keepArm=0;
+function keepPractice(){if(!practice)return;practice=null;try{STORE.removeItem(PRACT_KEY);}catch(e){}S.tut={done:1};centerCam();tutRender();tutHL();save();toast(tr('Du fortsätter med den nya fabriken','You are keeping the new factory'),true);}
 function endPractice(){if(!practice)return;const d=JSON.parse(practice.backup),secs=(Date.now()-practice.t)/1000;practice=null;
   try{STORE.removeItem(PRACT_KEY);}catch(e){}loadData(d);centerCam();tutRender();tutHL();save();
   if(secs>=30&&(d.rate||0)>0)applyOffline(secs,d.rate);else toast(tr('Tillbaka i din fabrik','Back in your factory'),true);}
 function loadData(d){
   S.ach=d.ach||{};S.stats=d.stats||{};S.money=d.money;S.upg=d.upg||{};S.raw=d.raw||{copper:1};S.rec=d.rec||{};S.unl=d.unl||{roller:1,starter:1,seller:1};S.total=d.total||0;S.sold=d.sold||{};
-  lastStarterRes=d.ls||'copper';lastRec=d.lr||null;S.ord=d.ord||null;S.ordNext=d.on==null?null:d.on;S.hist=d.hist&&d.hist.s?d.hist:{s:[],l:[]};
+  lastStarterRes=d.ls||'copper';lastRec=d.lr||null;S.nc=!!d.nc;S.ord=d.ord||null;S.ordNext=d.on==null?null:d.on;S.hist=d.hist&&d.hist.s?d.hist:{s:[],l:[]};
   S.lines=(d.lines||[[]]).map(en=>{const old=Array.isArray(en),arr=old?en:(en.tiles||[]);const line={grid:new Map(),land:old?((d.upg&&d.upg.land)||0):(en.land||0)};for(const[t,x,y,dd,cfg,paid]of arr)if(M[t])line.grid.set(key(x,y),mk(t,x,y,dd,cfg,paid,line));return line;});
   if(!S.lines.length)S.lines=[{grid:new Map(),land:0}];
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
@@ -1377,7 +1380,7 @@ function loadData(d){
   S.cur=Math.min(d.cur||0,S.lines.length-1);closeInspector();selT.clear();clip=null;renderLines();refreshToolbar();floorLand=-1;
 }
 function newGame(guide){
-  S.tut=guide?{i:0}:{done:1};S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];S.ord=null;S.ordNext=null;S.hist={s:[],l:[]};
+  S.tut=guide?{i:0}:{done:1};S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};S.nc=0;lastStarterRes='copper';lastRec=null;earnWin=[];S.ord=null;S.ordNext=null;S.hist={s:[],l:[]};
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
   const line={grid:new Map(),land:0};S.lines=[line];S.cur=0;
   if(!guide){line.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,line));
@@ -1669,8 +1672,8 @@ function start(data){
   let d=data&&data.save;
   let restored=false;if(!d){try{const pb=STORE.getItem(PRACT_KEY);if(pb){d=JSON.parse(pb);STORE.removeItem(PRACT_KEY);STORE.setItem(SAVE_KEY,pb);restored=true;}}catch(e){}}
   if(!d){try{const raw=STORE.getItem(SAVE_KEY);if(raw)d=JSON.parse(raw);}catch(e){}}
-  if(d&&d.lines){loadData(d);centerCam();if(!(data&&data.save))applyOffline((Date.now()-(d.t||Date.now()))/1000,d.rate||0);}
-  else{newGame(false);openPanel('start');}
+  if(d&&d.lines){loadData(d);centerCam();if(S.nc)openPanel('start');else if(!(data&&data.save))applyOffline((Date.now()-(d.t||Date.now()))/1000,d.rate||0);}
+  else{newGame(false);S.nc=1;save();openPanel('start');}
   if(restored)setTimeout(()=>toast(tr('Övningen avbröts. Din riktiga fabrik är tillbaka.','Practice cancelled. Your real factory is back.'),true),800);
   window.addEventListener('resize',resize);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
