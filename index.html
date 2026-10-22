@@ -132,6 +132,9 @@ td img{width:24px;height:24px;vertical-align:middle;margin-right:6px;image-rende
 .help ol{padding-left:20px;margin:0}
 textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;background:var(--lo);color:var(--ink);border:0;padding:8px;box-shadow:inset 2px 2px 0 #000;resize:vertical}
 .big{font-family:var(--head);font-size:40px;color:var(--money);text-shadow:3px 3px 0 #000;margin:8px 0 14px}
+.startch{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:14px}
+.startch button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 16px;white-space:normal;text-align:left}
+.startch b{font-size:18px}.startch span{font-size:13.5px;opacity:.85;line-height:1.3}
 .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 .ach{background:#33373f;padding:10px;display:flex;flex-direction:column;gap:5px;box-shadow:inset 2px 2px 0 #484d57,inset -2px -2px 0 #1e2125,0 0 0 2px var(--edge);min-width:0}
 .ach.ok{background:#2c3a29;box-shadow:inset 2px 2px 0 #4a6a3f,inset -2px -2px 0 #1a2416,0 0 0 2px var(--edge)}
@@ -142,6 +145,24 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
 #achtoast{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:30px;display:flex;flex-direction:column;gap:2px;padding:10px 14px;background:#2c3a29;box-shadow:inset 2px 2px 0 #4a6a3f,0 0 0 3px var(--edge),5px 5px 0 rgba(0,0,0,.5);transform:translateY(20px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
 #achtoast.show{opacity:1;transform:none}#achtoast b{font-family:var(--head);font-size:11px;color:var(--gold);font-weight:400}#achtoast em{font-style:normal;font-family:var(--num);font-size:20px;color:var(--money)}
 @media (prefers-reduced-motion:reduce){#achtoast{transition:none}}
+#tut{position:absolute;top:14px;left:max(14px,env(safe-area-inset-left,0px));width:min(300px,calc(100% - 28px));padding:10px 12px;display:flex;flex-direction:column;gap:5px;z-index:2}
+#tut.docked{top:auto;bottom:14px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 28px));z-index:5}
+#modal.tutpad{padding-bottom:130px}
+#tut h3{margin:0;font-family:var(--px);font-weight:700;font-size:16px;color:var(--gold);line-height:1.2}
+#tut p{margin:0;font-size:14px;line-height:1.35}
+.tutprac{font-size:11.5px;color:#cdf2b0}
+.tutfix{padding:5px 7px;background:#3a3420;box-shadow:inset 2px 2px 0 #6a5a2a}.tutfix.bad{background:#4a231d;box-shadow:inset 2px 2px 0 #7a3a30}
+.tutc{font-size:13px;color:var(--muted);line-height:1.35}.tutc.ok{color:var(--money)}
+.tuth{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.tutdots{display:flex;gap:3px;flex:1}.tutdots i{flex:1;height:4px;background:var(--lo)}.tutdots i.on{background:var(--gold)}
+.tutm{font-family:var(--num);font-size:16px;color:var(--muted)}.tutm b{color:var(--money);font-weight:400}
+.tutskip{background:none!important;box-shadow:none!important;color:var(--muted);font-size:11.5px;padding:0;text-decoration:underline;margin-left:auto}
+.tutskip:hover{color:var(--ink)}
+#tut .row{margin-top:2px}
+.tutmode #hint,.tutmode #areabar,.tutmode #achtoast{display:none!important}
+.tut-hl{outline:3px solid var(--gold)!important;outline-offset:3px;animation:tutp 1.6s ease-in-out infinite}
+@keyframes tutp{50%{outline-color:rgba(255,204,51,.45)}}
+@media (prefers-reduced-motion:reduce){.tut-hl{animation:none}}
 #toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:#5a221c;color:#ffe0da;padding:7px 14px;font-weight:600;pointer-events:none;opacity:0;white-space:nowrap;box-shadow:inset 2px 2px 0 #8a3a30,0 0 0 3px var(--edge),4px 4px 0 rgba(0,0,0,.5)}
 #toast.good{background:#24451c;color:#ddffd0;box-shadow:inset 2px 2px 0 #3f7a32,0 0 0 3px var(--edge),4px 4px 0 rgba(0,0,0,.5)}
 #toast.show{opacity:1}
@@ -176,7 +197,8 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="paused" hidden>PAUS</div>
   <div id="zoom"><button id="zin" title="Zooma in (+)" aria-label="Zooma in">+</button><span class="zl" id="zlv">100%</span><button id="zout" title="Zooma ut (−)" aria-label="Zooma ut">−</button><button id="zfit" class="small" title="Visa hela linjen (mellanslag)" aria-label="Visa hela linjen">Hela</button></div>
   <div id="achtoast" role="status"></div>
-  <div id="ver">v3.1</div>
+  <aside id="tut" class="pxbox" hidden></aside>
+  <div id="ver">v3.2</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -327,38 +349,38 @@ const U={
  night:{grp:'Fabrik',n:'Nattskift',max:5,base:5000,g:3,fx:l=>'Offline: '+(25+15*l)+' %'}
 };
 const ACH=[
- {id:'sell1',n:'Första försäljningen',d:'Sälj något.',r:200,p:()=>[Object.values(S.sold).reduce((a,b)=>a+b,0),1]},
- {id:'proc1',n:'Förädlare',d:'Sälj 50 bearbetade varor (tråd, plåt, kugghjul eller flytande).',r:1000,p:()=>[Object.entries(S.sold).filter(([k])=>['liquid','gear','wire','plate'].includes(RES[k]&&RES[k].kind)).reduce((a,[,v])=>a+v,0),50]},
- {id:'prod1',n:'Första produkten',d:'Sälj en produkt från en hantverkare.',r:3000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product').reduce((a,[,v])=>a+v,0),1]},
- {id:'motor100',n:'Motorvärk',d:'Sälj 100 motorer.',r:15000,p:()=>[S.sold.motor||0,100]},
- {id:'rate1k',n:'Rullande',d:'Tjäna 1 000 kr/s.',r:20000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1000]},
- {id:'mil',n:'Miljonär',d:'Tjäna 1 M kr totalt.',r:50000,p:()=>[S.total,1e6]},
- {id:'cable50',n:'Kabeldragare',d:'Sälj 50 kablar.',r:60000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='cable').reduce((a,[,v])=>a+v,0),50]},
- {id:'line2',n:'Expansion',d:'Köp en andra linje.',r:100000,p:()=>[S.lines.length,2]},
- {id:'rate10k',n:'Fart',d:'Tjäna 10 000 kr/s.',r:250000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e4]},
- {id:'circ500',n:'Kretsarnas mästare',d:'Sälj 500 kretskort.',r:300000,p:()=>[S.sold.circuit||0,500]},
- {id:'upg50',n:'Uppgraderare',d:'Nå 50 uppgraderingsnivåer totalt.',r:500000,p:()=>[Object.values(S.upg).reduce((a,b)=>a+b,0),50]},
- {id:'land',n:'Stor fabrik',d:'Bygg ut en linje till största ytan.',r:1e6,p:()=>[Math.max(...S.lines.map(l=>l.land||0)),6]},
- {id:'robot',n:'Robotåldern',d:'Sälj en robot.',r:2e6,p:()=>[S.sold.robot||0,1]},
- {id:'rate100k',n:'Industrijätte',d:'Tjäna 100 000 kr/s.',r:5e6,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e5]},
- {id:'sat',n:'Ut i rymden',d:'Sälj en satellit.',r:8e6,p:()=>[S.sold.satellite||0,1]},
- {id:'rad1',n:'Strålande',d:'Sälj en radioaktiv produkt.',r:15e6,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product'&&RES[k].tier>=4).reduce((a,[,v])=>a+v,0),1]},
- {id:'waste',n:'Ansvarsfull',d:'Ta hand om 500 radioaktivt avfall.',r:20e6,p:()=>[S.stats.waste||0,500]},
- {id:'link',n:'Sammankopplad',d:'Skicka 100 saker mellan linjer.',r:25e6,p:()=>[S.stats.linked||0,100]},
- {id:'bil',n:'Miljardär',d:'Tjäna 1 Md kr totalt.',r:50e6,p:()=>[S.total,1e9]},
- {id:'lines5',n:'Imperium',d:'Ha fem linjer.',r:80e6,p:()=>[S.lines.length,5]},
- {id:'bp',n:'Ritningssamlare',d:'Lås upp alla ritningar.',r:150e6,p:()=>[RECIPES.filter(r=>S.rec[r.id]).length,RECIPES.length]},
- {id:'android',n:'Konstgjord intelligens',d:'Sälj en android.',r:300e6,p:()=>[S.sold.android||0,1]},
- {id:'station',n:'Rymdstation',d:'Sälj en rymdstation.',r:500e6,p:()=>[S.sold.station||0,1]},
- {id:'time',n:'Tidsresenär',d:'Sälj en tidsmaskin.',r:1e9,p:()=>[S.sold.timemachine||0,1]}
+ {id:'sell1',n:'Första försäljningen',d:'Sälj något.',r:50,p:()=>[Object.values(S.sold).reduce((a,b)=>a+b,0),1]},
+ {id:'proc1',n:'Förädlare',d:'Sälj 50 bearbetade varor (tråd, plåt, kugghjul eller flytande).',r:150,p:()=>[Object.entries(S.sold).filter(([k])=>['liquid','gear','wire','plate'].includes(RES[k]&&RES[k].kind)).reduce((a,[,v])=>a+v,0),50]},
+ {id:'prod1',n:'Första produkten',d:'Sälj en produkt från en hantverkare.',r:400,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product').reduce((a,[,v])=>a+v,0),1]},
+ {id:'motor100',n:'Motorvärk',d:'Sälj 100 motorer.',r:2000,p:()=>[S.sold.motor||0,100]},
+ {id:'rate1k',n:'Rullande',d:'Tjäna 1 000 kr/s.',r:5000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1000]},
+ {id:'mil',n:'Miljonär',d:'Tjäna 1 M kr totalt.',r:15000,p:()=>[S.total,1e6]},
+ {id:'cable50',n:'Kabeldragare',d:'Sälj 50 kablar.',r:15000,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='cable').reduce((a,[,v])=>a+v,0),50]},
+ {id:'line2',n:'Expansion',d:'Köp en andra linje.',r:25000,p:()=>[S.lines.length,2]},
+ {id:'rate10k',n:'Fart',d:'Tjäna 10 000 kr/s.',r:50000,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e4]},
+ {id:'circ500',n:'Kretsarnas mästare',d:'Sälj 500 kretskort.',r:60000,p:()=>[S.sold.circuit||0,500]},
+ {id:'upg50',n:'Uppgraderare',d:'Nå 50 uppgraderingsnivåer totalt.',r:100000,p:()=>[Object.values(S.upg).reduce((a,b)=>a+b,0),50]},
+ {id:'land',n:'Stor fabrik',d:'Bygg ut en linje till största ytan.',r:200000,p:()=>[Math.max(...S.lines.map(l=>l.land||0)),6]},
+ {id:'robot',n:'Robotåldern',d:'Sälj en robot.',r:400000,p:()=>[S.sold.robot||0,1]},
+ {id:'rate100k',n:'Industrijätte',d:'Tjäna 100 000 kr/s.',r:1e6,p:()=>[Math.max(currentRate(),S.stats.bestRate||0),1e5]},
+ {id:'sat',n:'Ut i rymden',d:'Sälj en satellit.',r:1.5e6,p:()=>[S.sold.satellite||0,1]},
+ {id:'rad1',n:'Strålande',d:'Sälj en radioaktiv produkt.',r:3e6,p:()=>[Object.entries(S.sold).filter(([k])=>RES[k]&&RES[k].kind==='product'&&RES[k].tier>=4).reduce((a,[,v])=>a+v,0),1]},
+ {id:'waste',n:'Ansvarsfull',d:'Ta hand om 500 radioaktivt avfall.',r:4e6,p:()=>[S.stats.waste||0,500]},
+ {id:'link',n:'Sammankopplad',d:'Skicka 100 saker mellan linjer.',r:5e6,p:()=>[S.stats.linked||0,100]},
+ {id:'bil',n:'Miljardär',d:'Tjäna 1 Md kr totalt.',r:10e6,p:()=>[S.total,1e9]},
+ {id:'lines5',n:'Imperium',d:'Ha fem linjer.',r:15e6,p:()=>[S.lines.length,5]},
+ {id:'bp',n:'Ritningssamlare',d:'Lås upp alla ritningar.',r:30e6,p:()=>[RECIPES.filter(r=>S.rec[r.id]).length,RECIPES.length]},
+ {id:'android',n:'Konstgjord intelligens',d:'Sälj en android.',r:60e6,p:()=>[S.sold.android||0,1]},
+ {id:'station',n:'Rymdstation',d:'Sälj en rymdstation.',r:100e6,p:()=>[S.sold.station||0,1]},
+ {id:'time',n:'Tidsresenär',d:'Sälj en tidsmaskin.',r:200e6,p:()=>[S.sold.timemachine||0,1]}
 ];
 function checkAch(){for(const a of ACH){if(S.ach[a.id])continue;const[c,g]=a.p();if(c>=g){S.ach[a.id]=1;S.money+=a.r;S.total+=a.r;achToast(a);}}}
-function achToast(a){const el=$('achtoast');el.innerHTML=`<b>Uppdrag klart</b><span>${a.n}</span><em>+${fmt(a.r)} kr</em>`;el.classList.add('show');clearTimeout(achToast.t);achToast.t=setTimeout(()=>el.classList.remove('show'),3500);if(panel==='ach')renderPanel();}
+function achToast(a){if(typeof tutOn==='function'&&tutOn())return;const el=$('achtoast');el.innerHTML=`<b>Uppdrag klart</b><span>${a.n}</span><em>+${fmt(a.r)} kr</em>`;el.classList.add('show');clearTimeout(achToast.t);achToast.t=setTimeout(()=>el.classList.remove('show'),3500);if(panel==='ach')renderPanel();}
 const LINE_COST=[0,200000,2500000,30000000,300000000];
 const GWMAX=30,GHMAX=20;
 
 /* ============ STATE ============ */
-const S={money:1000,upg:{},raw:{copper:1},rec:{},unl:{roller:1,starter:1,seller:1},lines:[{grid:new Map(),land:0}],cur:0,total:0,sold:{},ach:{},stats:{}};
+const S={tut:{done:1},money:1000,upg:{},raw:{copper:1},rec:{},unl:{roller:1,starter:1,seller:1},lines:[{grid:new Map(),land:0}],cur:0,total:0,sold:{},ach:{},stats:{}};
 const key=(x,y)=>x+','+y;
 const lv=k=>S.upg[k]||0;
 const spawnInt=(l=lv('st_time'))=>2*0.9**l;
@@ -524,7 +546,7 @@ const nbr=(t,dir)=>t.line.grid.get(key(t.x+DIRS[dir][0],t.y+DIRS[dir][1]));
 function push(t,item,dir){const n=nbr(t,dir);return n?accept(n,item,dir):false;}
 function routeCycle(t,outs){const n=outs.length;for(let k=0;k<n;k++){const o=outs[(t.idx+k)%n];if(!nbr(t,o))continue;if(push(t,t.hold,o)){t.hold=null;t.idx=(t.idx+k+1)%n;return;}}}
 function earn(v){earnBucket+=v;if(v>0)S.total+=v;}
-function sell(item,t){
+function sell(item,t){t.ns=(t.ns||0)+1;
   const v=RES[item].v*priceMult();S.money+=v;earn(v);S.sold[item]=(S.sold[item]||0)+1;salesAcc[item]=(salesAcc[item]||0)+1;valAcc[item]=(valAcc[item]||0)+v;
   if(t.line===L()&&floats.length<60)floats.push({x:t.x*TS+TS/2+(Math.random()*20-10),y:t.y*TS+6-Math.random()*8,txt:'+'+fmt(v),life:1});
 }
@@ -657,6 +679,7 @@ function render(){
     const p=it.prog,e=DIRS[it.from],o=DIRS[t.d],cx=t.x*TS+TS/2,cy=t.y*TS+TS/2;let px,py;
     if(p<.5){const f=p*2;px=cx+e[0]*TS/2*(1-f);py=cy+e[1]*TS/2*(1-f);}else{const f=(p-.5)*2;px=cx+o[0]*TS/2*f;py=cy+o[1]*TS/2*f;}
     drawIt(g,it.item,px,py,isz);}
+  tutDraw(g);
   // area selection
   const selList=areaTiles();
   for(const t of selList){g.fillStyle='rgba(127,208,255,.22)';g.fillRect(t.x*TS,t.y*TS,TS,TS);g.strokeStyle='#7fd0ff';g.lineWidth=3;g.strokeRect(t.x*TS+1.5,t.y*TS+1.5,TS-3,TS-3);}
@@ -837,7 +860,7 @@ function renderInspector(){
         `<div class="spdtxt">Från ${fmt2(spdVal(t.t,0))} (grundfart) till ${fmt2(spdVal(t.t,m))} ${SPDF(t.t)[2]} (snabbast)</div>`:'')+
       (m?`<div class="row"><button class="chip${auto?' on':''}" data-act="spdauto">Snabbast (standard)</button><button class="chip${!auto&&cur===0?' on':''}" data-act="spd0">Grundfart</button></div>`:'')+`</div>`;}
   h+=`<div class="isec"><h4>Status</h4><div class="live" id="live"></div></div>`;
-  insp.innerHTML=h;insp.hidden=false;updateLive();
+  insp.innerHTML=h;insp.hidden=false;if(typeof tutHL==='function')tutHL();updateLive();
 }
 const intoFront=(t,n)=>n&&!NODIR(n.t)&&(n.d+2)%4===t.d;
 function blockMsg(t){const it=t.q||(t.wq?'waste':null);if(!it||t.qw<2)return'';const n=nbr(t,t.d);return '<span class="warn">'+(!n?'Inget tar emot vid utgången':n.t==='roller'&&(n.d+2)%4===t.d?'Bandet pekar mot maskinen':intoFront(t,n)?M[n.t].n+' har sin utgång (gul-svart kant) mot den här maskinen och tar inte emot därifrån. Vrid den med R.':'Nästa maskin tar inte emot '+RES[it].n)+'</span>';}
@@ -927,7 +950,7 @@ function switchLine(i){S.cur=i;closeInspector();selT.clear();floats.length=0;ren
 /* panels */
 let panel=null;
 function openPanel(p){panel=p;modal.hidden=false;renderPanel();}
-function closePanel(){panel=null;modal.hidden=true;}
+function closePanel(){panel=null;modal.hidden=true;if(typeof tutRender==='function')tutRender();}
 const head=t=>`<div class="shh"><h2>${t}</h2><span class="spacer"></span><button data-act="close"><kbd>Esc</kbd>Stäng</button></div>`;
 function renderPanel(){
   let h='';
@@ -963,6 +986,10 @@ function renderPanel(){
       const lock=r.kind==='product'?!S.rec[k]:r.kind==='energy'?!S.unl.refinery:r.kind==='rad2'?!S.unl.centrifuge:r.kind==='waste'?!S.unl.crafter4:r.kind==='rad'?!(S.unl.radstarter&&S.raw[k]):!S.raw[r.base];
       h+=`<tr class="${lock?'locked':''}"><td><img alt="" src="${itemIcon(k)}">${r.n}</td><td>${how}</td><td class="v">${fmt(r.v*priceMult())} kr</td></tr>`;}
     h+='</tbody></table></div>';
+  } else if(panel==='start'){
+    h=`<div class="shh"><h2>Ny fabrik</h2></div><p>Vill du att en guide visar hur spelet fungerar? Det tar några minuter och du får pengar som tack när du är klar.</p>`+
+      `<div class="startch"><button class="gold" data-act="startguide"><b>Ja, visa mig</b><span>Börja på ett tomt golv och bygg allt steg för steg</span></button>`+
+      `<button data-act="startfree"><b>Nej, jag kan spelet</b><span>Börja med en färdig liten linje: startare, band och säljare</span></button></div>`;
   } else if(panel==='ach'){const done=ACH.filter(a=>S.ach[a.id]).length;
     h=head('Uppdrag')+`<p>${done} av ${ACH.length} klara. Varje uppdrag ger en pengabonus direkt när det blir klart.</p><div class="achs">`;
     for(const a of ACH){const ok=S.ach[a.id];const[c,g]=a.p();const f=ok?1:Math.max(0,Math.min(1,c/g));
@@ -992,11 +1019,12 @@ function renderPanel(){
 <div><h3>Säkerhetskopia</h3><p>Spelet sparas själv i webbläsaren. Kopiera koden nedan och spara den någonstans för att ta med fabriken till en annan dator.</p>
 <textarea id="exp" readonly></textarea><div class="row" style="margin-top:8px"><button data-act="copyexp">Kopiera koden</button></div>
 <p style="margin-top:14px">Klistra in en kod för att ladda en sparad fabrik:</p><textarea id="imp" placeholder="Klistra in koden här"></textarea><div class="row" style="margin-top:8px"><button class="gold" data-act="import">Ladda kod</button></div>
+<h3>Guiden</h3><p>Vill du se guiden igen? Den körs i en egen övningsfabrik. Din riktiga fabrik sparas och kommer tillbaka precis som den var när du är klar eller avslutar.</p><div class="row"><button data-act="restarttut" data-label="Starta om guiden" ${practice||tutOn()?'disabled':''}>Starta om guiden</button></div>
 <h3>Fabriken</h3><div class="row"><button class="red" data-act="clearline" data-label="Riv allt på linje ${S.cur+1}">Riv allt på linje ${S.cur+1}</button><button class="red" data-act="reset" data-label="Börja om från början">Börja om från början</button></div></div></div>`;
   } else if(panel==='offline'){
     h=`<div class="shh"><h2>Välkommen tillbaka</h2></div><p>Medan du var borta i ${offlineInfo.time} tjänade fabriken</p><div class="big">${fmt(offlineInfo.amount)} kr</div><div class="row"><button class="gold" data-act="close">Fortsätt</button></div>`;
   }
-  sheet.innerHTML=h;
+  sheet.innerHTML=h;if(typeof tutHL==='function'){tutRender();tutHL();}
   if(panel==='help'){const ex=$('exp');if(ex)ex.value=exportCode();}
   refreshPanel();
 }
@@ -1012,10 +1040,14 @@ function refreshPanel(){
 const armed={};
 function confirmBtn(b,fn){const a=b.dataset.act;if(!armed[a]){armed[a]=1;b.textContent='Klicka igen för att bekräfta';setTimeout(()=>{armed[a]=0;if(b.isConnected)b.textContent=b.dataset.label;},3000);return;}armed[a]=0;fn();}
 modal.addEventListener('click',e=>{
-  if(e.target===modal){closePanel();return;}
+  if(e.target===modal){if(panel==='start')return;closePanel();return;}
   const b=e.target.closest('button');if(!b)return;const a=b.dataset.act;
+  if(a==='restarttut'){confirmBtn(b,()=>startPractice());return;}
+  if(a==='startguide'){newGame(true);closePanel();save();return;}
+  if(a==='startfree'){closePanel();toast('Tryck H för hjälp. Lås upp maskiner med M.',true);return;}
   if(a==='close'){closePanel();return;}
-  if(a==='reset'){confirmBtn(b,()=>{newGame();closePanel();toast('Ny fabrik startad',true);});return;}
+  if(practice&&(a==='reset'||a==='import')){toast('Avsluta övningen först');return;}
+  if(a==='reset'){confirmBtn(b,()=>{newGame(false);openPanel('start');});return;}
   if(a==='resetspd'){confirmBtn(b,()=>{const n=resetSpeeds();toast(n+' maskiner kör nu så snabbt som möjligt',true);renderPanel();if(sel)renderInspector();});return;}
   if(a==='clearline'){confirmBtn(b,()=>{let v=0;for(const t of L().grid.values())v+=t.paid;L().grid=new Map();S.money+=v;closeInspector();closePanel();toast('Linjen rensad, +'+fmt(v)+' kr',true);});return;}
   if(a==='copyexp'){const ta=$('exp');const done=()=>toast('Koden är kopierad',true);
@@ -1028,6 +1060,104 @@ modal.addEventListener('click',e=>{
 });
 document.querySelectorAll('[data-panel]').forEach(b=>b.addEventListener('click',()=>panel===b.dataset.panel?closePanel():openPanel(b.dataset.panel)));
 
+
+/* ============ TUTORIAL ============ */
+const tg=()=>S.lines[0].grid,at=(x,y)=>tg().get(key(x,y));
+const isT=(x,y,t,d,res)=>{const o=at(x,y);return !!o&&o.t===t&&(d==null||o.d===d)&&(!res||o.cfg.res===res);};
+const moneyLine=n=>`<div class="tutm">Du har <b>${fmt(Math.min(S.money,n))}</b> av ${fmt(n)} kr${S.money>=n?' ✓':''}</div>`;
+const chk=(ok,txt)=>`<div class="tutc${ok?' ok':''}">${ok?'✓':'○'} ${txt}</div>`;
+const P3need=[['raw','iron','Järn','bp','[data-raw=iron]',500],['unl','cutter','Kapare','mach','[data-unl=cutter]',2500],['unl','crafter1','Hantverkare MK1','mach','[data-unl=crafter1]',3000],['rec','motor','Ritningen Motor','bp','[data-rec=motor]',3000]];
+const p3have=x=>!!(x[0]==='raw'?S.raw[x[1]]:x[0]==='unl'?S.unl[x[1]]:S.rec[x[1]]);
+const p3next=()=>P3need.find(x=>!p3have(x));
+const TUT=[
+ {p:1,h:'Din första fabrik',t:'Bygg en linje som gör och säljer koppar. Följ de gula rutorna.',next:'Sätt igång'},
+ {p:1,h:'Bygg en startare',t:'Tryck <kbd>2</kbd> och klicka i den gula rutan.',tip:'Den gul-svarta kanten är utgången.',slot:0,tiles:[{x:2,y:3,t:'starter',d:0,res:'copper'}],ok:()=>isT(2,3,'starter',0)},
+ {p:1,h:'Dra ett band',t:'Tryck <kbd>1</kbd> och dra från första till sista gula rutan.',slot:8,tiles:[3,4,5,6].map(x=>({x,y:3,t:'roller',d:0})),ok:()=>[3,4,5,6].every(x=>isT(x,3,'roller',0))},
+ {p:1,h:'Bygg en säljare',t:()=>isT(7,3,'seller')?'Vänta tills den första kopparen säljs.':'Tryck <kbd>3</kbd> och bygg säljaren.',slot:()=>isT(7,3,'seller')?null:1,hl:()=>isT(7,3,'seller')?['#money']:[],tiles:[{x:7,y:3,t:'seller'}],ok:()=>isT(7,3,'seller')&&(at(7,3).ns||0)>=1,reward:1000},
+ {p:2,h:'Lås upp tråddragaren',t:'Tryck <kbd>M</kbd> och lås upp <b>Tråddragare</b>.',panel:'mach',pbtn:'[data-unl=wire]',ok:()=>S.unl.wire},
+ {p:2,h:'Byt ut ett band',t:()=>isT(3,3,'roller')?'Riv bandet i den röda rutan: <kbd>X</kbd> och klicka.':'Tryck <kbd>4</kbd> och bygg tråddragaren här.',tip:'Tråd är värd mer än koppar.',slot:()=>isT(3,3,'roller')?'demolish':2,tiles:[{x:3,y:3,t:'wire',d:0}],ok:()=>isT(3,3,'wire',0)},
+ {p:2,h:'Uppgradera',t:'Tryck <kbd>U</kbd> och köp <b>Snabbare startare</b>.',panel:'upg',pbtn:'[data-buy=st_time]',ok:()=>Object.values(S.upg).some(v=>v>0),reward:12000},
+ {p:3,h:'Lås upp en motor',t:()=>'Lås upp:'+P3need.map(x=>chk(p3have(x),x[2]+' <span style="opacity:.7">('+(x[3]==='bp'?'B':'M')+')</span>')).join(''),panel:()=>{const n=p3next();return n&&n[3];},pbtn:()=>{const n=p3next();return n&&n[4];},ok:()=>!p3next()},
+ {p:3,h:'Startare för järn',t:()=>!at(2,1)?'Tryck <kbd>2</kbd> och bygg en startare här.':'Klicka på den markerade startaren och välj <b>Järn</b>.',slot:()=>!at(2,1)?0:(insp.hidden||sel!==at(2,1)?'select':null),tiles:[{x:2,y:1,t:'starter',d:0,res:'iron'}],insp:'[data-act=sres][data-v=iron]',ok:()=>isT(2,1,'starter',0,'iron')},
+ {p:3,h:'Kapare och band',t:()=>!isT(3,1,'cutter')?'Tryck <kbd>6</kbd> och bygg kaparen.':'Tryck <kbd>1</kbd> och dra bandet.',slot:()=>isT(3,1,'cutter')?8:4,tiles:[{x:3,y:1,t:'cutter',d:0},{x:4,y:1,t:'roller',d:0},{x:5,y:1,t:'roller',d:0}],ok:()=>isT(3,1,'cutter',0)&&isT(4,1,'roller',0)&&isT(5,1,'roller',0)},
+ {p:3,h:'Hantverkare',t:()=>!isT(6,1,'crafter1')?'Tryck <kbd>9</kbd> och bygg hantverkaren.':'Tryck <kbd>3</kbd> och bygg säljaren.',tip:()=>!isT(6,1,'crafter1')?'Den väljer ritningen Motor själv.':'',slot:()=>isT(6,1,'crafter1')?1:7,tiles:[{x:6,y:1,t:'crafter1',d:0},{x:7,y:1,t:'seller'}],ok:()=>isT(6,1,'crafter1',0)&&at(6,1).cfg.rec==='motor'&&isT(7,1,'seller')},
+ {p:3,h:'Startare för koppar',t:()=>!at(5,0)?'Tryck <kbd>2</kbd> och bygg en startare här.':'Klicka på den markerade startaren och välj <b>Koppar</b>.',slot:()=>!at(5,0)?0:(insp.hidden||sel!==at(5,0)?'select':null),tiles:[{x:5,y:0,t:'starter',d:0,res:'copper'}],insp:'[data-act=sres][data-v=copper]',ok:()=>isT(5,0,'starter',0,'copper')},
+ {p:3,h:'Tråd ovanifrån',t:'Tryck <kbd>4</kbd>, sedan <kbd>R</kbd> tills pilen pekar <b>nedåt</b>. Bygg här.',tip:'Hantverkaren tar emot från alla sidor utom utgången.',slot:2,tiles:[{x:6,y:0,t:'wire',d:1}],ok:()=>isT(6,0,'wire',1)},
+ {p:3,h:'Första motorn',t:()=>{const c=at(6,1);const b=c&&c.buf||{};return `Vänta medan hantverkaren bygger.<div class="tutm">Kugghjul ${Math.min(b.iron_gear||0,2)}/2 · Tråd ${Math.min(b.copper_wire||0,1)}/1</div>`;},frames:[[6,1]],ok:()=>(S.sold.motor||0)>=1,reward:2500},
+ {p:3,h:'Klart!',t:()=>practice?'Tryck på knappen för att gå tillbaka till din fabrik.':'Fler maskiner och ritningar finns under <kbd>M</kbd> och <kbd>B</kbd>. <kbd>O</kbd> visar uppdrag.',next:()=>practice?'Tillbaka till min fabrik':'Spela vidare',end:1}
+];
+const PARTS={1:'Grunderna',2:'Förädla',3:'Bygga en produkt'};
+const tutEl=$('tut');let tutArm=false;
+const tutOn=()=>S.tut&&!S.tut.done&&S.tut.i<TUT.length;
+const tval=v=>typeof v==='function'?v():v;
+const tmatch=(o,g,res)=>o.t===g.t&&(NODIR(g.t)||g.d==null||o.d===g.d)&&(!res||!g.res||o.cfg.res===g.res);
+function tutIssues(){
+  const i=S.tut.i,E=new Map(),C=new Map();for(let k=0;k<i;k++)for(const g of TUT[k].tiles||[])E.set(key(g.x,g.y),g);
+  for(const g of TUT[i].tiles||[])C.set(key(g.x,g.y),g);
+  const r={missing:[],remove:[],rotate:[],res:[]};
+  for(const[k,g]of E){if(C.has(k))continue;const o=tg().get(k);if(!o)r.missing.push(g);else if(o.t!==g.t)r.remove.push(o);else if(!tmatch(o,g))r.rotate.push([o,g]);else if(g.res&&o.cfg.res!==g.res)r.res.push([o,g]);}
+  for(const[k,g]of C){const o=tg().get(k);if(o&&o.t!==g.t)r.remove.push(o);else if(o&&!tmatch(o,g))r.rotate.push([o,g]);}
+  for(const o of tg().values()){const k=key(o.x,o.y);if(!E.has(k)&&!C.has(k))r.remove.push(o);}
+  r.any=r.missing.length+r.remove.length+r.rotate.length+r.res.length>0;return r;
+}
+function tutMoney(st){if(!st.tiles)return'';const need=st.tiles.find(g=>!at(g.x,g.y));if(!need)return'';const c=machineCost(need.t);if(S.money>=c)return'';return `<div class="tutm">Väntar på pengar: <b>${fmt(S.money)}</b> / ${fmt(c)} kr</div>`;}
+function tutFix(r){const out=[];
+  if(r.remove.length)out.push(`<p class="tutfix bad">Ta bort det röda: <kbd>X</kbd> och klicka, eller <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</p>`);
+  if(r.rotate.length)out.push(`<p class="tutfix bad">Fel håll. Håll musen över den röda rutan och tryck <kbd>R</kbd> tills den pekar som den gula pilen.</p>`);
+  if(r.res.length)out.push(`<p class="tutfix bad">Klicka på den röda startaren och välj <b>${RES[r.res[0][1].res].n}</b> igen.</p>`);
+  if(r.missing.length)out.push(`<p class="tutfix">Något saknas. Bygg tillbaka <b>${M[r.missing[0].t].n.toLowerCase()}</b> i den gula rutan.</p>`);
+  return out.join('');}
+function tutRender(){
+  document.body.classList.toggle('tutmode',tutOn());
+  if(!tutOn()){tutEl.hidden=true;return;}
+  const st=TUT[S.tut.i],r=tutIssues(),fixing=r.any&&!(S.tut.i===5&&r.remove.length===1&&isT(3,3,'roller'));
+  const dots=TUT.map((_,i)=>`<i class="${i<=S.tut.i?'on':''}"></i>`).join('');const tip=tval(st.tip);
+  tutEl.innerHTML=`<div class="tuth"><span>Del ${st.p}/3</span><span class="tutdots">${dots}</span></div>`+
+   (fixing?`<h3>Rätta till först</h3>`+tutFix(r):`<h3>${st.h}</h3><p>${tval(st.t)}</p>`+(tip?`<p class="tutc">${tip}</p>`:'')+tutMoney(st))+
+   (S.cur!==0?`<p class="warn">Guiden gäller linje 1. Tryck <kbd>L</kbd>.</p>`:'')+
+   (practice?`<div class="tutprac">Övning. Din riktiga fabrik är sparad.</div>`:'')+
+   `<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'Avsluta övningen':'Hoppa över guiden'}</button>`}</div>`;
+  tutEl.hidden=false;const dock=!modal.hidden;tutEl.classList.toggle('docked',dock);modal.classList.toggle('tutpad',dock);
+}
+tutEl.addEventListener('click',e=>{const b=e.target.closest('[data-tut]');if(!b)return;
+  if(b.dataset.tut==='next'){if(!tutIssues().any)tutAdvance();}
+  else if(b.dataset.tut==='skip'){if(!tutArm){tutArm=true;b.textContent=practice?'Klicka igen för att gå tillbaka':'Klicka igen för att hoppa över';setTimeout(()=>{tutArm=false;if(b.isConnected)b.textContent=practice?'Avsluta övningen':'Hoppa över guiden';},3000);return;}if(practice){endPractice();return;}S.tut.done=1;const g0=S.lines[0];if(!g0.grid.size){g0.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,g0));for(let x=3;x<=6;x++)g0.grid.set(key(x,3),mk('roller',x,3,0,null,10,g0));g0.grid.set(key(7,3),mk('seller',7,3,0,null,100,g0));}centerCam();tutRender();tutHL();save();}});
+function tutAdvance(){const st=TUT[S.tut.i];if(st.reward){S.money+=st.reward;S.total+=st.reward;toast('Del '+st.p+' klar! +'+fmt(st.reward)+' kr'+(st.rewardTxt?' '+st.rewardTxt:''),true);}
+  if(st.end){if(practice){endPractice();return;}S.tut.done=1;centerCam();}else S.tut.i++;tutRender();tutHL();save();}
+function tutTick(){if(!tutOn()){if(!tutEl.hidden){tutEl.hidden=true;modal.classList.remove('tutpad');tutHL();}return;}let n=0;
+  while(tutOn()&&TUT[S.tut.i].ok&&!tutIssues().any&&TUT[S.tut.i].ok()&&n++<30)tutAdvance();
+  tutRender();tutHL();}
+function tutHL(){
+  for(const el of document.querySelectorAll('.tut-hl'))el.classList.remove('tut-hl');
+  if(!tutOn())return;const st=TUT[S.tut.i],r=tutIssues();
+  if(r.any&&modal.hidden){let el=null;if(r.remove.length)el=toolsEl.querySelector('[data-tool="demolish"]');else if(r.missing.length){const si=slotOf(r.missing[0].t);el=toolsEl.querySelector(`[data-slot="${si}"]`);}if(el)el.classList.add('tut-hl');if(r.res.length&&!insp.hidden){const c=insp.querySelector(`[data-act=sres][data-v=${r.res[0][1].res}]`);if(c)c.classList.add('tut-hl');}return;}
+  for(const sel of tval(st.hl)||[]){const el=document.querySelector(sel);if(el)(el.closest('.stat')||el).classList.add('tut-hl');}
+  const sl=tval(st.slot);if(sl!=null&&modal.hidden){const el=typeof sl==='number'?toolsEl.querySelector(`[data-slot="${sl}"]`):toolsEl.querySelector(`[data-tool="${sl}"]`);if(el)el.classList.add('tut-hl');}
+  const pn=tval(st.panel),pb=tval(st.pbtn);if(pn){if(modal.hidden||panel!==pn){const el=document.querySelector(`[data-panel="${pn}"]`);if(el)el.classList.add('tut-hl');}else{const el=sheet.querySelector(pb);if(el)el.classList.add('tut-hl');}}
+  if(st.insp&&!insp.hidden){const el=insp.querySelector(st.insp);if(el)el.classList.add('tut-hl');}
+}
+function tutGhost(g,gt,pulse){g.globalAlpha=.3+.15*pulse;drawTile(g,{t:gt.t,x:gt.x,y:gt.y,d:gt.d||0,cfg:{res:gt.res,rec:'motor'}},false);g.globalAlpha=1;
+  g.strokeStyle=`rgba(255,204,51,${pulse})`;g.lineWidth=4;g.strokeRect(gt.x*TS+2,gt.y*TS+2,TS-4,TS-4);
+  if(!NODIR(gt.t)){g.save();g.translate(gt.x*TS+TS/2,gt.y*TS+TS/2);g.rotate((gt.d||0)*Math.PI/2);g.fillStyle=`rgba(255,204,51,${pulse})`;g.beginPath();g.moveTo(TS/2-3,0);g.lineTo(TS/2-11,-6);g.lineTo(TS/2-11,6);g.closePath();g.fill();g.restore();}}
+function tutBad(g,o,pulse,cross){g.fillStyle=`rgba(255,107,87,${.18+.12*pulse})`;g.fillRect(o.x*TS,o.y*TS,TS,TS);g.strokeStyle=`rgba(255,107,87,${.6+.4*pulse})`;g.lineWidth=4;g.strokeRect(o.x*TS+2,o.y*TS+2,TS-4,TS-4);
+  if(cross){g.lineWidth=5;g.beginPath();g.moveTo(o.x*TS+12,o.y*TS+12);g.lineTo(o.x*TS+TS-12,o.y*TS+TS-12);g.moveTo(o.x*TS+TS-12,o.y*TS+12);g.lineTo(o.x*TS+12,o.y*TS+TS-12);g.stroke();}}
+function tutDraw(g){
+  if(!tutOn()||S.cur!==0)return;const st=TUT[S.tut.i],pulse=.6+.3*Math.sin(time*3.2),r=tutIssues();
+  if(r.any&&!(S.tut.i===5&&r.remove.length===1&&isT(3,3,'roller'))){
+    for(const o of r.remove)tutBad(g,o,pulse,true);
+    for(const[o,gt]of r.rotate){tutBad(g,o,pulse,false);g.save();g.translate(gt.x*TS+TS/2,gt.y*TS+TS/2);g.rotate((gt.d||0)*Math.PI/2);g.fillStyle=`rgba(255,204,51,${pulse})`;g.beginPath();g.moveTo(TS/2+4,0);g.lineTo(TS/2-10,-9);g.lineTo(TS/2-10,9);g.closePath();g.fill();g.restore();}
+    for(const[o]of r.res)tutBad(g,o,pulse,false);
+    for(const gt of r.missing)tutGhost(g,gt,pulse);return;}
+  if(S.tut.i===5&&isT(3,3,'roller')){tutBad(g,at(3,3),pulse,true);return;}
+  for(const[x,y]of st.frames||[]){g.strokeStyle=`rgba(255,204,51,${pulse})`;g.lineWidth=4;g.strokeRect(x*TS+2,y*TS+2,TS-4,TS-4);}
+  const open=(st.tiles||[]).filter(gt=>{const o=at(gt.x,gt.y);return !o||!tmatch(o,gt,true);});if(!open.length)return;
+  const t0=open[0].t;
+  for(const gt of open){if(gt.t!==t0)continue;const o=at(gt.x,gt.y);
+    if(!o){tutGhost(g,gt,pulse);continue;}
+    if(o.t===gt.t&&gt.res&&o.cfg.res!==gt.res&&tmatch(o,gt)){const sx=gt.x*TS,sy=gt.y*TS;g.strokeStyle=`rgba(255,204,51,${pulse})`;g.lineWidth=5;g.strokeRect(sx+1,sy+1,TS-2,TS-2);
+      g.fillStyle=`rgba(255,204,51,${pulse})`;g.beginPath();g.moveTo(sx+TS/2,sy-3);g.lineTo(sx+TS/2-9,sy-15);g.lineTo(sx+TS/2+9,sy-15);g.closePath();g.fill();continue;}
+    if(o.t===gt.t&&!tmatch(o,gt)){g.save();g.translate(gt.x*TS+TS/2,gt.y*TS+TS/2);g.rotate((gt.d||0)*Math.PI/2);g.fillStyle=`rgba(255,204,51,${pulse})`;g.beginPath();g.moveTo(TS/2-3,0);g.lineTo(TS/2-11,-6);g.lineTo(TS/2-11,6);g.closePath();g.fill();g.restore();}}
+}
 /* ============ INPUT ============ */
 function tileFromEvent(e){const r=canvas.getBoundingClientRect();const wx=(e.clientX-r.left-W/2)/cam.z+cam.x,wy=(e.clientY-r.top-H/2)/cam.z+cam.y;return[Math.floor(wx/TS),Math.floor(wy/TS)];}
 document.addEventListener('contextmenu',e=>e.preventDefault());
@@ -1076,7 +1206,7 @@ function zoomAt(f,sx,sy){const wx=(sx-W/2)/cam.z+cam.x,wy=(sy-H/2)/cam.z+cam.y;c
 $('zin').addEventListener('click',()=>zoomAt(1.2,W/2,H/2));$('zout').addEventListener('click',()=>zoomAt(1/1.2,W/2,H/2));$('zfit').addEventListener('click',()=>centerCam());
 for(const id of ['zin','zout','zfit'])$(id).addEventListener('pointerdown',e=>e.stopPropagation());
 function clampCam(){cam.x=Math.min(GWMAX*TS,Math.max(0,cam.x));cam.y=Math.min(GHMAX*TS,Math.max(0,cam.y));}
-function centerCam(){cam.x=gw()*TS/2;cam.y=gh()*TS/2;const fit=Math.min((W-60)/(gw()*TS),(H-60)/(gh()*TS));cam.z=Math.min(1.75,Math.max(.4,fit||1));}
+function centerCam(){const off=(typeof tutOn==='function'&&tutOn()&&W>800)?Math.min(330,W*.26):0;cam.y=gh()*TS/2;const fit=Math.min((W-60-off)/(gw()*TS),(H-60)/(gh()*TS));cam.z=Math.min(1.75,Math.max(.4,fit||1));cam.x=gw()*TS/2-off/2/cam.z;}
 
 window.addEventListener('keydown',e=>{
   const tg=e.target;if(tg&&(tg.tagName==='INPUT'||tg.tagName==='TEXTAREA'||tg.tagName==='SELECT')){if(e.key==='Escape'){tg.blur();closePanel();}return;}
@@ -1117,26 +1247,33 @@ window.addEventListener('blur',()=>keys.clear());
 
 /* ============ SAVE ============ */
 const SAVE_KEY='fabriksgolvet-v2';
-function serialize(){return{v:2,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
+function serialize(){return{v:2,tut:S.tut,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
   lines:S.lines.map(l=>({land:l.land||0,tiles:[...l.grid.values()].map(t=>[t.t,t.x,t.y,t.d,t.cfg,t.paid])}))};}
-function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
-function exportCode(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(serialize()))));}catch(e){return'';}}
+const PRACT_KEY=SAVE_KEY+'-practice-backup';let practice=null;
+function save(){if(practice)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
+function exportCode(){try{return btoa(unescape(encodeURIComponent(practice?practice.backup:JSON.stringify(serialize()))));}catch(e){return'';}}
+function startPractice(){const backup=JSON.stringify(serialize());try{localStorage.setItem(SAVE_KEY,backup);localStorage.setItem(PRACT_KEY,backup);}catch(e){}
+  practice={backup,t:Date.now()};closePanel();newGame(true);toast('Övning startad. Din riktiga fabrik är sparad.',true);}
+function endPractice(){if(!practice)return;const d=JSON.parse(practice.backup),secs=(Date.now()-practice.t)/1000;practice=null;
+  try{localStorage.removeItem(PRACT_KEY);}catch(e){}loadData(d);centerCam();tutRender();tutHL();save();
+  if(secs>=30&&(d.rate||0)>0)applyOffline(secs,d.rate);else toast('Tillbaka i din fabrik',true);}
 function loadData(d){
   S.ach=d.ach||{};S.stats=d.stats||{};S.money=d.money;S.upg=d.upg||{};S.raw=d.raw||{copper:1};S.rec=d.rec||{};S.unl=d.unl||{roller:1,starter:1,seller:1};S.total=d.total||0;S.sold=d.sold||{};
   lastStarterRes=d.ls||'copper';lastRec=d.lr||null;
   S.lines=(d.lines||[[]]).map(en=>{const old=Array.isArray(en),arr=old?en:(en.tiles||[]);const line={grid:new Map(),land:old?((d.upg&&d.upg.land)||0):(en.land||0)};for(const[t,x,y,dd,cfg,paid]of arr)if(M[t])line.grid.set(key(x,y),mk(t,x,y,dd,cfg,paid,line));return line;});
   if(!S.lines.length)S.lines=[{grid:new Map(),land:0}];
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
+  S.tut=d.tut||{done:1};
   if(!d.ach){for(const x of ACH){const[c,g]=x.p();if(c>=g)S.ach[x.id]=1;}}
   S.cur=Math.min(d.cur||0,S.lines.length-1);closeInspector();selT.clear();clip=null;renderLines();refreshToolbar();floorLand=-1;
 }
-function newGame(){
-  S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];
+function newGame(guide){
+  S.tut=guide?{i:0}:{done:1};S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
   const line={grid:new Map(),land:0};S.lines=[line];S.cur=0;
-  line.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,line));
+  if(!guide){line.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,line));
   for(let x=3;x<=6;x++)line.grid.set(key(x,3),mk('roller',x,3,0,null,10,line));
-  line.grid.set(key(7,3),mk('seller',7,3,0,null,100,line));
+  line.grid.set(key(7,3),mk('seller',7,3,0,null,100,line));}
   closeInspector();renderLines();refreshToolbar();floorLand=-1;centerCam();save();
 }
 let offlineInfo=null;
@@ -1146,7 +1283,7 @@ function applyOffline(secs,rate){
   offlineInfo={amount:amt,time:hh?hh+' h '+mm+' min':mm?mm+' min':Math.floor(s)+' s'};openPanel('offline');
 }
 let hiddenAt=0;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();save();}else if(hiddenAt){applyOffline((Date.now()-hiddenAt)/1000,currentRate());hiddenAt=0;}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();save();}else if(hiddenAt&&!practice){applyOffline((Date.now()-hiddenAt)/1000,currentRate());hiddenAt=0;}});
 window.addEventListener('beforeunload',save);
 
 /* ============ LOOP ============ */
@@ -1160,7 +1297,7 @@ function frame(now){
   render();
   {const zl=$('zlv'),zt=Math.round(cam.z*100)+'%';if(zl.textContent!==zt)zl.textContent=zt;$('zin').disabled=cam.z>=3-1e-6;$('zout').disabled=cam.z<=.35+1e-6;}
   uiAcc+=dt;if(uiAcc>.2){uiAcc=0;$('money').textContent=fmt(S.money)+' kr';$('rate').textContent=fmt(currentRate())+' kr/s';
-    {const r=currentRate();if(r>(S.stats.bestRate||0))S.stats.bestRate=r;}checkAch();updAchBtn();
+    {const r=currentRate();if(r>(S.stats.bestRate||0))S.stats.bestRate=r;}checkAch();updAchBtn();tutTick();
     $('startc').textContent=starterCount()+'/'+maxStarters();refreshToolbar();updateLive();refreshPanel();
     for(const nb of linesEl.querySelectorAll('[data-cost]'))nb.disabled=S.money<+nb.dataset.cost;renderUndo();}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save();}
@@ -1169,9 +1306,11 @@ function frame(now){
 function start(data){
   buildSprites();resize();buildToolbar();setTool('select');
   let d=data&&data.save;
+  let restored=false;if(!d){try{const pb=localStorage.getItem(PRACT_KEY);if(pb){d=JSON.parse(pb);localStorage.removeItem(PRACT_KEY);localStorage.setItem(SAVE_KEY,pb);restored=true;}}catch(e){}}
   if(!d){try{const raw=localStorage.getItem(SAVE_KEY);if(raw)d=JSON.parse(raw);}catch(e){}}
   if(d&&d.lines){loadData(d);centerCam();if(!(data&&data.save))applyOffline((Date.now()-(d.t||Date.now()))/1000,d.rate||0);}
-  else{newGame();setTimeout(()=>toast('Tryck H för hjälp. Lås upp maskiner med M.',true),700);}
+  else{newGame(false);openPanel('start');}
+  if(restored)setTimeout(()=>toast('Övningen avbröts. Din riktiga fabrik är tillbaka.',true),800);
   window.addEventListener('resize',resize);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
   requestAnimationFrame(frame);
