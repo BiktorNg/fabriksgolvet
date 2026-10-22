@@ -34,6 +34,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--px);font-size:15px;
 .navbtns{display:flex;gap:6px;flex-shrink:0}
 button{font:inherit;font-family:var(--px);font-weight:500;color:var(--ink);background:var(--btn);border:0;border-radius:0;padding:6px 10px;cursor:pointer;white-space:nowrap;box-shadow:inset 2px 2px 0 var(--btnhi),inset -2px -3px 0 rgba(0,0,0,.45),0 0 0 2px var(--edge)}
 button:hover:not(:disabled){background:#525865}
+button.gold:hover:not(:disabled),.linetab.on:hover:not(:disabled){background:#bb9124}
+button.red:hover:not(:disabled){background:#a0463a}
+.tool.on:hover:not(:disabled),.chip.on:hover:not(:disabled),.rchip.on:hover:not(:disabled){background:#7f6820}
 button:active:not(:disabled){box-shadow:inset 2px 3px 0 rgba(0,0,0,.45),0 0 0 2px var(--edge);transform:translateY(1px)}
 button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 button:disabled{opacity:.45;cursor:not-allowed}
@@ -247,7 +250,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v4.1</div>
+  <div id="ver">v4.2</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -488,6 +491,7 @@ function fmt(n){const a=Math.abs(n),s=n<0?'-':'';if(a<100000)return s+Math.floor
   const U=SV?[[1e12,' Bn'],[1e9,' Md'],[1e6,' M'],[1e3,' k']]:[[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];
   for(const[d,l]of U)if(a>=d){const v=a/d,t=(v<10?v.toFixed(2):v<100?v.toFixed(1):Math.floor(v)+'');return s+(SV?t.replace('.',','):t)+l;}}
 const fmtS=v=>{const U=SV?[[1e12,'Bn'],[1e9,'Md'],[1e6,'M'],[1e3,'k']]:[[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];for(const[d,l]of U)if(v>=d){const x=v/d;let t=x<10&&Math.abs(x-Math.round(x))>.05?x.toFixed(1):Math.round(x)+'';return (SV?t.replace('.',','):t)+l;}return Math.round(v)+'';};
+const nM=n=>n+' '+(n===1?tr('maskin','machine'):tr('maskiner','machines'));
 const cash=v=>SV?fmt(v)+' kr':(v<0?'-$'+fmt(-v):'$'+fmt(v));
 const RATE=SV?' kr/s':' $/s';
 
@@ -582,7 +586,7 @@ function place(x,y,t,d,silent,cfg){
 }
 function clearTile(t){let n=t.its.length+(t.wq||0)+(t.q?(t.qn||1):0)+(t.inp?1:0)+(t.hold?1:0)+t.cb.length+t.tq.length+t.oq.length;for(const k in t.buf)n+=t.buf[k];
   t.its=[];t.q=null;t.qn=0;t.wq=0;t.qw=0;t.inp=null;t.hold=null;t.buf={};t.cb=[];t.busy=false;t.timer=0;t.tq=[];t.oq=[];t.wrong=null;return n;}
-function clearTiles(ts,label){let n=0;for(const t of ts)n+=clearTile(t);toast(n?label+tr(': tog bort ',': removed ')+n+tr(' saker',' items'):tr('Inget att tömma','Nothing to empty'),!!n);}
+function clearTiles(ts,label){let n=0;for(const t of ts)n+=clearTile(t);toast(n?label+tr(': tog bort ',': removed ')+n+(n===1?tr(' sak',' item'):tr(' saker',' items')):tr('Inget att tömma','Nothing to empty'),!!n);}
 function removeAt(x,y){const t=tileAt(x,y);if(!t)return;sfx('remove');S.money+=t.paid;L().grid.delete(key(x,y));if(sel===t)closeInspector();}
 const dirOf=(sx,sy)=>sx===1?0:sy===1?1:sx===-1?2:3;
 
@@ -843,13 +847,13 @@ function updateHint(){
 function updateAreabar(){
   if(tool==='area'&&areaTiles().length){const n=areaTiles().length;areabar.innerHTML=tr(`<span>${n} markerade · dra för att flytta</span><button data-a="copy"><kbd>C</kbd>Kopiera</button><button data-a="rotsel"><kbd>R</kbd>Vrid</button><button data-a="slow" title="Långsammare"><kbd>,</kbd>Fart −</button><button data-a="fast" title="Snabbare"><kbd>.</kbd>Fart +</button><button data-a="empty">Töm</button><button class="red" data-a="del"><kbd>Del</kbd>Riv alla</button><button data-a="cancel"><kbd>Q</kbd>Avbryt</button>`,`<span>${n} selected · drag to move</span><button data-a="copy"><kbd>C</kbd>Copy</button><button data-a="rotsel"><kbd>R</kbd>Rotate</button><button data-a="slow" title="Slower"><kbd>,</kbd>Speed −</button><button data-a="fast" title="Faster"><kbd>.</kbd>Speed +</button><button data-a="empty">Empty</button><button class="red" data-a="del"><kbd>Del</kbd>Demolish all</button><button data-a="cancel"><kbd>Q</kbd>Cancel</button>`)+(areaTiles().some(x=>x.t==='roller')?tr(`<span class="sws" style="margin-left:4px">Färg på band: ${swatches('selcol',-1)}</span>`,`<span class="sws" style="margin-left:4px">Belt color: ${swatches('selcol',-1)}</span>`):'');areabar.hidden=false;}
   else if(tool==='roller'){const cc=copyCfg&&copyCfg.t==='roller'?copyCfg.cfg.col||0:0;areabar.innerHTML=tr(`<span class="sws">Färg på nya band: ${swatches('newcol',cc)}</span>`,`<span class="sws">New belt color: ${swatches('newcol',cc)}</span>`);areabar.hidden=false;}
-  else if(tool==='paste'&&clip){areabar.innerHTML=tr(`<span>Kopia: ${clip.cells.length} maskiner · ${cash(clipCost())}</span><button data-a="rot"><kbd>R</kbd>Vrid</button><button data-a="cancel"><kbd>Q</kbd>Klar</button>`,`<span>Copy: ${clip.cells.length} machines · ${cash(clipCost())}</span><button data-a="rot"><kbd>R</kbd>Rotate</button><button data-a="cancel"><kbd>Q</kbd>Done</button>`);areabar.hidden=false;}
+  else if(tool==='paste'&&clip){areabar.innerHTML=tr(`<span>Kopia: ${nM(clip.cells.length)} · ${cash(clipCost())}</span><button data-a="rot"><kbd>R</kbd>Vrid</button><button data-a="cancel"><kbd>Q</kbd>Klar</button>`,`<span>Copy: ${nM(clip.cells.length)} · ${cash(clipCost())}</span><button data-a="rot"><kbd>R</kbd>Rotate</button><button data-a="cancel"><kbd>Q</kbd>Done</button>`);areabar.hidden=false;}
   else areabar.hidden=true;
 }
 areabar.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;beginEdit();
-  if(a==='selcol'){let n=0;for(const x of areaTiles())if(x.t==='roller'){if(+b.dataset.v)x.cfg.col=+b.dataset.v;else delete x.cfg.col;n++;}toast(n+tr(' band färgade ',' belts colored ')+BELTNAME[+b.dataset.v].toLowerCase(),true);}
+  if(a==='selcol'){let n=0;for(const x of areaTiles())if(x.t==='roller'){if(+b.dataset.v)x.cfg.col=+b.dataset.v;else delete x.cfg.col;n++;}toast(n+tr(' band färgade ',n===1?' belt colored ':' belts colored ')+BELTNAME[+b.dataset.v].toLowerCase(),true);}
   else if(a==='newcol'){const v=+b.dataset.v;lastBeltCol=v;copyCfg={t:'roller',cfg:v?{col:v}:{}};updateAreabar();}
-  else if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),tr('Markerade','Selected'));else if(a==='rotsel')rotateSel();else if(a==='slow'||a==='fast'){let n=0;for(const x of areaTiles())if(UPK[x.t]){const c0=tl(x);setSpd(x,a==='fast'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);n++;}toast(n+tr(' maskiner ',' machines ')+(a==='fast'?tr('snabbare','faster'):tr('långsammare','slower')),true);}else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
+  else if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),tr('Markerade','Selected'));else if(a==='rotsel')rotateSel();else if(a==='slow'||a==='fast'){let n=0;for(const x of areaTiles())if(UPK[x.t]){const c0=tl(x);setSpd(x,a==='fast'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);n++;}toast(nM(n)+' '+(a==='fast'?tr('snabbare','faster'):tr('långsammare','slower')),true);}else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
 let toastT=0;
 function toast(msg,good,quiet){if(!good&&!quiet)sfx('error');const el=$('toast');el.textContent=msg;el.className=good?'good show':'show';clearTimeout(toastT);toastT=setTimeout(()=>el.className=good?'good':'',2300);}
 
@@ -858,15 +862,15 @@ function areaTiles(){const out=[];for(const t of selT){if(L().grid.get(key(t.x,t
 function areaRect(){const ts=areaTiles();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const t of ts){x0=Math.min(x0,t.x);y0=Math.min(y0,t.y);x1=Math.max(x1,t.x);y1=Math.max(y1,t.y);}return[x0,y0,x1,y1];}
 function rectSelect(r,add){if(!add)selT.clear();const x0=Math.min(r.x0,r.x1),y0=Math.min(r.y0,r.y1),x1=Math.max(r.x0,r.x1),y1=Math.max(r.y0,r.y1);for(const t of L().grid.values())if(t.x>=x0&&t.x<=x1&&t.y>=y0&&t.y<=y1)selT.add(t);}
 function copyArea(){const ts=areaTiles();if(!ts.length){toast(tr('Området är tomt','The area is empty'));return;}const[x0,y0,x1,y1]=areaRect();
-  clip={w:x1-x0+1,h:y1-y0+1,cells:ts.map(t=>({dx:t.x-x0,dy:t.y-y0,t:t.t,d:t.d,cfg:JSON.parse(JSON.stringify(t.cfg))}))};selT.clear();setTool('paste');toast(tr('Kopierade ','Copied ')+ts.length+tr(' maskiner',' machines'),true);}
-function deleteArea(){const ts=areaTiles();let v=0;for(const t of ts){v+=t.paid;removeAt(t.x,t.y);}selT.clear();updateAreabar();if(ts.length)toast(tr('Rev ','Demolished ')+ts.length+tr(' maskiner, +',' machines, +')+cash(v),true);}
+  clip={w:x1-x0+1,h:y1-y0+1,cells:ts.map(t=>({dx:t.x-x0,dy:t.y-y0,t:t.t,d:t.d,cfg:JSON.parse(JSON.stringify(t.cfg))}))};selT.clear();setTool('paste');toast(tr('Kopierade ','Copied ')+nM(ts.length),true);}
+function deleteArea(){const ts=areaTiles();let v=0;for(const t of ts){v+=t.paid;removeAt(t.x,t.y);}selT.clear();updateAreabar();if(ts.length)toast(tr('Rev ','Demolished ')+nM(ts.length)+', +'+cash(v),true);}
 function inArea(x,y){const t=tileAt(x,y);return !!t&&selT.has(t);}
 function moveTile(t,x,y){if(x===t.x&&y===t.y)return;if(!inBounds(x,y)){toast(tr('Utanför fabriken','Outside the factory'));return;}if(tileAt(x,y)){toast(tr('Rutan är upptagen','That tile is taken'));return;}
   L().grid.delete(key(t.x,t.y));t.x=x;t.y=y;L().grid.set(key(x,y),t);}
 function moveCheck(dx,dy){const ts=areaTiles(),set=new Set(ts);for(const t of ts){const nx=t.x+dx,ny=t.y+dy;if(!inBounds(nx,ny))return false;const o=tileAt(nx,ny);if(o&&!set.has(o))return false;}return true;}
 function moveArea(dx,dy){const ts=areaTiles();if(!ts.length)return;if(!moveCheck(dx,dy)){toast(tr('Får inte plats där','Doesn\'t fit there'));return;}
   for(const t of ts)L().grid.delete(key(t.x,t.y));for(const t of ts){t.x+=dx;t.y+=dy;L().grid.set(key(t.x,t.y),t);}
-  toast(tr('Flyttade ','Moved ')+ts.length+tr(' maskiner',' machines'),true);}
+  toast(tr('Flyttade ','Moved ')+nM(ts.length),true);}
 function rotateSel(){const ts=areaTiles();if(!ts.length)return;const[x0,y0,x1,y1]=areaRect(),h=y1-y0+1,set=new Set(ts),np=new Map();
   const cx=(x0+x1)/2,cy=(y0+y1)/2;let mx0=1e9,my0=1e9,mx1=-1e9,my1=-1e9;
   for(const t of ts){const nx=Math.round(cx-(t.y-cy)),ny=Math.round(cy+(t.x-cx));np.set(t,[nx,ny]);mx0=Math.min(mx0,nx);my0=Math.min(my0,ny);mx1=Math.max(mx1,nx);my1=Math.max(my1,ny);}
@@ -941,7 +945,7 @@ function renderInspector(){
         tr(`<div class="spdtxt">Från ${fmt2(spdVal(t.t,0))} (grundfart) till ${fmt2(spdVal(t.t,m))} ${SPDF(t.t)[2]} (snabbast)</div>`,`<div class="spdtxt">From ${fmt2(spdVal(t.t,0))} (base) to ${fmt2(spdVal(t.t,m))} ${SPDF(t.t)[2]} (fastest)</div>`):'')+
       (m?tr(`<div class="row"><button class="chip${auto?' on':''}" data-act="spdauto">Snabbast (standard)</button><button class="chip${!auto&&cur===0?' on':''}" data-act="spd0">Grundfart</button></div>`,`<div class="row"><button class="chip${auto?' on':''}" data-act="spdauto">Fastest (default)</button><button class="chip${!auto&&cur===0?' on':''}" data-act="spd0">Base speed</button></div>`):'')+`</div>`;}
   h+=`<div class="isec"><h4>Status</h4><div class="live" id="live"></div></div>`;
-  insp.innerHTML=h;insp.hidden=false;if(typeof tutHL==='function')tutHL();updateLive();
+  if(insp._h!==h||insp.hidden){insp.innerHTML=h;insp._h=h;}insp.hidden=false;if(typeof tutHL==='function')tutHL();updateLive();
 }
 const intoFront=(t,n)=>n&&!NODIR(n.t)&&(n.d+2)%4===t.d;
 function blockMsg(t){const it=t.q||(t.wq?'waste':null);if(!it||t.qw<2)return'';const n=nbr(t,t.d);return '<span class="warn">'+(!n?tr('Inget tar emot vid utgången','Nothing accepts at the output'):n.t==='roller'&&(n.d+2)%4===t.d?tr('Bandet pekar mot maskinen','The belt points at the machine'):intoFront(t,n)?M[n.t].n+tr(' har sin utgång (gul-svart kant) mot den här maskinen och tar inte emot därifrån. Vrid den med R.',' has its output (yellow-black edge) facing this machine and won\'t accept from it. Rotate it with R.'):tr('Nästa maskin tar inte emot ','The next machine doesn\'t accept ')+RES[it].n)+'</span>';}
@@ -1019,11 +1023,11 @@ function renderLines(){
   h+=tr(`<span class="lsep"></span><button class="linetab" data-clearitems="1" title="Tar bort alla saker på band och i maskiner på den här linjen">Töm band</button>`,`<span class="lsep"></span><button class="linetab" data-clearitems="1" title="Removes all items on belts and in machines on this line">Empty belts</button>`);
   h+=tr(`<button class="linetab" id="rstspd" data-resetline="1" title="Alla maskiner på den här linjen kör så snabbt som uppgraderingarna tillåter"><span class="xl">Återställ hastigheter</span><span class="ns">Återställ fart</span></button>`,`<button class="linetab" id="rstspd" data-resetline="1" title="Every machine on this line runs as fast as your upgrades allow">Reset speeds</button>`);
   h+=`<span class="spacer"></span>`;
-  linesEl.innerHTML=h;renderUndo();
+  if(linesEl._h!==h){linesEl.innerHTML=h;linesEl._h=h;}renderUndo();
 }
 linesEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.undo){undo();return;}if(b.dataset.redo){redo();return;}
-  if(b.dataset.resetline){edit(()=>{let n=0;for(const t of L().grid.values())if(t.cfg.spd!=null){delete t.cfg.spd;n++;}toast(n?tr('Linje ','Line ')+(S.cur+1)+': '+n+tr(' maskiner kör nu så snabbt som möjligt',' machines now run as fast as possible'):tr('Inga anpassade hastigheter på linjen','No custom speeds on this line'),!!n);});if(sel)renderInspector();return;}
+  if(b.dataset.resetline){edit(()=>{let n=0;for(const t of L().grid.values())if(t.cfg.spd!=null){delete t.cfg.spd;n++;}toast(n?tr('Linje ','Line ')+(S.cur+1)+': '+nM(n)+tr(' kör nu så snabbt som möjligt',n===1?' now runs as fast as possible':' now run as fast as possible'):tr('Inga anpassade hastigheter på linjen','No custom speeds on this line'),!!n);});if(sel)renderInspector();return;}
   if(b.dataset.clearitems){clearTiles([...L().grid.values()],tr('Linje ','Line ')+(S.cur+1));return;}
   if(b.dataset.line!==undefined)switchLine(+b.dataset.line);
   else if(b.dataset.land){const c=landCost();if(landLv()>=LAND_MAX)return;if(S.money<c){toast(tr('Inte råd: större yta kostar ','Can\'t afford: bigger area costs ')+cash(c));return;}S.money-=c;L().land=landLv()+1;toast(tr('Linje ','Line ')+(S.cur+1)+tr(' är nu ',' is now ')+gw()+' × '+gh()+tr(' rutor',' tiles'),true);renderLines();centerCam();}
@@ -1045,7 +1049,7 @@ function renderPanel(){
       h+='</div>';}
   } else if(panel==='upg'){
     h=head(tr('Uppgraderingar','Upgrades'));const grps=[...new Set(Object.values(U).map(u=>u.grp))];const nsp=customSpeeds().length;
-    h+=tr(`<div class="row" style="margin-bottom:4px"><span style="color:var(--muted)">Maskiner du inte har ändrat kör alltid så snabbt som dina uppgraderingar tillåter.${nsp?` ${nsp} maskiner har en egen hastighet.`:''}</span>${nsp?`<button data-act="resetspd" data-label="Återställ alla hastigheter">Återställ alla hastigheter</button>`:''}</div>`,`<div class="row" style="margin-bottom:4px"><span style="color:var(--muted)">Machines you haven't changed always run as fast as your upgrades allow.${nsp?` ${nsp} machines have a custom speed.`:''}</span>${nsp?`<button data-act="resetspd" data-label="Reset all speeds">Reset all speeds</button>`:''}</div>`);
+    h+=tr(`<div class="row" style="margin-bottom:4px"><span style="color:var(--muted)">Maskiner du inte har ändrat kör alltid så snabbt som dina uppgraderingar tillåter.${nsp?` ${nM(nsp)} ${nsp===1?'har':'har'} en egen hastighet.`:''}</span>${nsp?`<button data-act="resetspd" data-label="Återställ alla hastigheter">Återställ alla hastigheter</button>`:''}</div>`,`<div class="row" style="margin-bottom:4px"><span style="color:var(--muted)">Machines you haven't changed always run as fast as your upgrades allow.${nsp?` ${nM(nsp)} ${nsp===1?'has':'have'} a custom speed.`:''}</span>${nsp?`<button data-act="resetspd" data-label="Reset all speeds">Reset all speeds</button>`:''}</div>`);
     for(const gname of grps){h+=`<h3>${gname}</h3><div class="cards">`;
       for(const k in U){const u=U[k];if(u.grp!==gname)continue;const l=lv(k),max=l>=u.max,c=upCost(k),locked=u.req&&!S.unl[u.req];
         h+=tr(`<div class="card${max?' done':''}${locked?' locked':''}"><div class="ch">${u.req?`<img alt="" src="${machIcon(u.req)}">`:''}<b>${u.n}</b><span class="lvl">${l}/${u.max}</span></div><div class="fx">${u.fx(l)}${max?'':' → <span class="ok">'+u.fx(l+1)+'</span>'}</div>${locked?`<button disabled>Lås upp ${M[u.req].n} först</button>`:`<button class="gold" data-buy="${k}" data-cost="${max?'':c}" ${max?'disabled':''}>${max?'Max':'Köp · '+cash(c)}</button>`}</div>`,`<div class="card${max?' done':''}${locked?' locked':''}"><div class="ch">${u.req?`<img alt="" src="${machIcon(u.req)}">`:''}<b>${u.n}</b><span class="lvl">${l}/${u.max}</span></div><div class="fx">${u.fx(l)}${max?'':' → <span class="ok">'+u.fx(l+1)+'</span>'}</div>${locked?`<button disabled>Unlock ${M[u.req].n} first</button>`:`<button class="gold" data-buy="${k}" data-cost="${max?'':c}" ${max?'disabled':''}>${max?'Max':'Buy · '+cash(c)}</button>`}</div>`);}
@@ -1132,7 +1136,7 @@ function renderPanel(){
   } else if(panel==='offline'){
     h=tr(`<div class="shh"><h2>Välkommen tillbaka</h2></div><p>Medan du var borta i ${offlineInfo.time} tjänade fabriken</p><div class="big">${cash(offlineInfo.amount)}</div><div class="row"><button class="gold" data-act="close">Fortsätt</button></div>`,`<div class="shh"><h2>Welcome back</h2></div><p>While you were away for ${offlineInfo.time} your factory earned</p><div class="big">${cash(offlineInfo.amount)}</div><div class="row"><button class="gold" data-act="close">Continue</button></div>`);
   }
-  sheet.innerHTML=h;if(typeof tutHL==='function'){tutRender();tutHL();}
+  if(sheet._h!==h){sheet.innerHTML=h;sheet._h=h;}if(typeof tutHL==='function'){tutRender();tutHL();}
   if(panel==='help'){const ex=$('exp');if(ex)ex.value=exportCode();}
   refreshPanel();
 }
@@ -1156,7 +1160,7 @@ modal.addEventListener('click',e=>{
   if(a==='close'){closePanel();return;}
   if(practice&&(a==='reset'||a==='import')){toast(tr('Avsluta övningen först','Finish the practice first'));return;}
   if(a==='reset'){confirmBtn(b,()=>{newGame(false);openPanel('start');});return;}
-  if(a==='resetspd'){confirmBtn(b,()=>{const n=resetSpeeds();toast(n+tr(' maskiner kör nu så snabbt som möjligt',' machines now run as fast as possible'),true);renderPanel();if(sel)renderInspector();});return;}
+  if(a==='resetspd'){confirmBtn(b,()=>{const n=resetSpeeds();toast(nM(n)+tr(' kör nu så snabbt som möjligt',n===1?' now runs as fast as possible':' now run as fast as possible'),true);renderPanel();if(sel)renderInspector();});return;}
   if(a==='clearline'){confirmBtn(b,()=>{let v=0;for(const t of L().grid.values())v+=t.paid;L().grid=new Map();S.money+=v;closeInspector();closePanel();toast(tr('Linjen rensad, +','Line cleared, +')+cash(v),true);});return;}
   if(a==='lang'){try{window.localStorage.setItem('af-lang',b.dataset.v);}catch(e){}save();b.disabled=true;setTimeout(()=>location.reload(),CG?1500:0);return;}
   if(a==='copyexp'){const ta=$('exp');const done=()=>toast(tr('Koden är kopierad','Code copied'),true);
@@ -1221,12 +1225,12 @@ function tutRender(){
   if(!tutOn()){tutEl.hidden=true;return;}
   const st=TUT[S.tut.i],r=tutIssues(),fixing=r.any&&!(S.tut.i===5&&r.remove.length===1&&isT(3,3,'roller'));
   const dots=TUT.map((_,i)=>`<i class="${i<=S.tut.i?'on':''}"></i>`).join('');const tip=tval(st.tip);
-  tutEl.innerHTML=tr(`<div class="tuth"><span>Del ${st.p}/3</span><span class="tutdots">${dots}</span></div>`,`<div class="tuth"><span>Part ${st.p}/3</span><span class="tutdots">${dots}</span></div>`)+
+  const _th=tr(`<div class="tuth"><span>Del ${st.p}/3</span><span class="tutdots">${dots}</span></div>`,`<div class="tuth"><span>Part ${st.p}/3</span><span class="tutdots">${dots}</span></div>`)+
    (fixing?tr(`<h3>Rätta till först</h3>`,`<h3>Fix this first</h3>`)+tutFix(r):`<h3>${st.h}</h3><p>${tval(st.t)}</p>`+(tip?`<p class="tutc">${tip}</p>`:'')+tutMoney(st))+
    (S.cur!==0?tr(`<p class="warn">Guiden gäller linje 1. Tryck <kbd>L</kbd>.</p>`,`<p class="warn">The guide is on line 1. Press <kbd>L</kbd>.</p>`):'')+
    (practice?tr(`<div class="tutprac">Övning. Din riktiga fabrik är sparad.</div>`,`<div class="tutprac">Practice. Your real factory is saved.</div>`):'')+
    tr(`<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end&&practice&&!r.any?`<button data-tut="keep">${Date.now()-keepArm<3500?tr('Klicka igen: din gamla fabrik ersätts','Click again: your old factory is replaced'):tr('Fortsätt med den här','Keep this one')}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'Avsluta övningen':'Hoppa över guiden'}</button>`}</div>`,`<div class="row">${st.next&&!r.any?`<button class="gold" data-tut="next">${tval(st.next)}</button>`:''}${st.end&&practice&&!r.any?`<button data-tut="keep">${Date.now()-keepArm<3500?tr('Klicka igen: din gamla fabrik ersätts','Click again: your old factory is replaced'):tr('Fortsätt med den här','Keep this one')}</button>`:''}${st.end?'':`<button data-tut="skip" class="tutskip">${practice?'End practice':'Skip the guide'}</button>`}</div>`);
-  tutEl.hidden=false;const dock=!modal.hidden;tutEl.classList.toggle('docked',dock);modal.classList.toggle('tutpad',dock);
+  if(tutEl._h!==_th){tutEl.innerHTML=_th;tutEl._h=_th;}tutEl.hidden=false;const dock=!modal.hidden;tutEl.classList.toggle('docked',dock);modal.classList.toggle('tutpad',dock);
 }
 tutEl.addEventListener('click',e=>{const b=e.target.closest('[data-tut]');if(!b)return;
   if(b.dataset.tut==='next'){if(!tutIssues().any)tutAdvance();}
@@ -1343,7 +1347,7 @@ window.addEventListener('keydown',e=>{
     case 'c':if(tool==='area'&&areaTiles().length)copyArea();else if(ht)copyFrom(ht);break;
     case 'e':if(ht)openInspector(ht);break;
     case '[':case ']':case ',':case '.':{const up=k===']'||k==='.';const ts=tool==='area'&&areaTiles().length?areaTiles():[ht||sel].filter(Boolean);let n=0;for(const x of ts)if(UPK[x.t]){const c0=tl(x);setSpd(x,up?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);n++;}
-      if(n){if(sel)renderInspector();const f=ts.find(x=>UPK[x.t]);toast(n>1?n+tr(' maskiner ',' machines ')+(up?tr('snabbare','faster'):tr('långsammare','slower')):M[f.t].n+': '+(lv(UPK[f.t])?tr('nivå ','level ')+fmtLv(tl(f))+tr(' av ',' of ')+lv(UPK[f.t]):tr('ingen uppgradering än','no upgrade yet')),true);}break;}
+      if(n){if(sel)renderInspector();const f=ts.find(x=>UPK[x.t]);toast(n>1?nM(n)+' '+(up?tr('snabbare','faster'):tr('långsammare','slower')):M[f.t].n+': '+(lv(UPK[f.t])?tr('nivå ','level ')+fmtLv(tl(f))+tr(' av ',' of ')+lv(UPK[f.t]):tr('ingen uppgradering än','no upgrade yet')),true);}break;}
     case 'l':switchLine((S.cur+1)%S.lines.length);break;
     case '+':case '=':zoomAt(1.15,W/2,H/2);break;
     case '-':zoomAt(1/1.15,W/2,H/2);break;
@@ -1518,7 +1522,7 @@ function musTick(){
 /* ============ ORDERS ============ */
 const ordEl=$('order');
 const niceRound=v=>{if(v<100)return Math.round(v);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;};
-const ordBlocked=()=>!SET.orders||practice||(typeof tutOn==='function'&&tutOn());
+const ordBlocked=()=>!SET.orders||practice||S.nc||(typeof tutOn==='function'&&tutOn());
 function ordGen(){
   const c=Object.keys(ema).filter(id=>id!=='waste'&&RES[id]&&ema[id]>.03);if(!c.length)return null;
   let tot=0;const w=c.map(id=>{const x=Math.sqrt(emaV[id]||ema[id]*RES[id].v)+1;tot+=x;return x;});
