@@ -82,6 +82,24 @@ body.short #modal{padding:10px 12px}body.short .sheet{padding:12px 14px 14px}bod
 body.short #insp{top:8px;right:8px;max-height:calc(100% - 16px);padding:10px}
 body.short #tut:not(.docked){top:8px}
 body.short #zoom{flex-direction:row;bottom:48px;gap:6px}body.short #zoom button{width:32px;height:30px;font-size:20px}body.short #zoom button.small{height:30px;width:auto;padding:0 8px;font-size:12px}
+#order{position:absolute;top:14px;left:max(14px,env(safe-area-inset-left,0px));width:240px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+body.short #order{top:8px;width:224px;padding:6px 8px;gap:4px}
+#order .oh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--muted)}#order .oh b{font-family:var(--head);font-weight:400;color:var(--gold);font-size:11px;text-transform:uppercase}
+#order .orow{display:flex;gap:8px;align-items:center}#order .orow img{width:32px;height:32px;image-rendering:pixelated;flex:none}
+#order .on{font-weight:600;line-height:1.15}#order .om{font-family:var(--num);font-size:18px;line-height:1.1;color:var(--muted)}#order .om b{color:var(--ink);font-weight:400}
+#order .row{display:flex;gap:6px}#order .row button{flex:1;padding:4px 6px}
+.obar{height:7px;background:var(--lo);box-shadow:inset 1px 1px 0 #000}.obar i{display:block;height:100%;background:var(--money)}
+.linetab.lwarn{position:relative}.linetab.lwarn::after{content:'';position:absolute;top:-3px;right:-3px;width:7px;height:7px;background:var(--gold);box-shadow:0 0 0 2px var(--edge)}
+.graphwrap{background:var(--lo);box-shadow:inset 2px 2px 0 #000,inset -2px -2px 0 var(--hi);padding:6px}
+#st-graph{display:block;width:100%;height:150px}
+tr.curl td{color:var(--gold)}
+.setrow{display:grid;grid-template-columns:150px 1fr 60px;gap:12px;align-items:center;margin:8px 0;max-width:560px}
+.setrow span{font-family:var(--num);font-size:19px;text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;height:10px;background:var(--lo);box-shadow:inset 2px 2px 0 #000;outline:none;width:100%;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:22px;background:var(--gold);box-shadow:inset -2px -3px 0 rgba(0,0,0,.4),0 0 0 2px var(--edge)}
+input[type=range]::-moz-range-thumb{width:16px;height:22px;background:var(--gold);border:0;border-radius:0;box-shadow:0 0 0 2px var(--edge)}
+input[type=range]:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+#setbtn{padding:5px 7px}#setbtn img{width:18px;height:18px;image-rendering:pixelated;display:block}
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#101114}
 #floor{display:block;position:absolute;inset:0;cursor:crosshair;touch-action:none;image-rendering:pixelated}
 .pxbox{background:var(--panel);box-shadow:inset 2px 2px 0 var(--hi),inset -2px -2px 0 var(--lo),0 0 0 3px var(--edge),6px 6px 0 rgba(0,0,0,.45)}
@@ -215,6 +233,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
     <button data-panel="stats"><kbd>T</kbd><span class="nl">Statistik</span><span class="ns">Stats</span></button>
     <button data-panel="ach" id="achbtn"><kbd>O</kbd><span class="nl">Uppdrag</span><span class="ns">Mål</span> <span id="achn"></span></button>
     <button data-panel="help"><kbd>H</kbd><span class="nl">Hjälp</span><span class="ns">Hjälp</span></button>
+    <button data-panel="settings" id="setbtn" title="Inställningar" aria-label="Inställningar"><img alt="" id="gearimg"></button>
   </div>
 </header>
 <nav class="bar lines" id="lines"></nav>
@@ -225,8 +244,9 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="paused" hidden>PAUS</div>
   <div id="zoom"><button id="zin" title="Zooma in (+)" aria-label="Zooma in">+</button><span class="zl" id="zlv">100%</span><button id="zout" title="Zooma ut (−)" aria-label="Zooma ut">−</button><button id="zfit" class="small" title="Visa hela linjen (mellanslag)" aria-label="Visa hela linjen">Hela</button></div>
   <div id="achtoast" role="status"></div>
+  <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v3.5</div>
+  <div id="ver">v3.6</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -247,7 +267,8 @@ document.documentElement.lang=LANG;
 if(!SV){
   const lb=document.querySelectorAll('.top .stat .lbl');['Cash','Income','Starters'].forEach((t,i)=>{if(lb[i])lb[i].textContent=t;});
   const nav={mach:['Machines','Machines'],upg:['Upgrades','Upgr.'],bp:['Blueprints','Bluepr.'],info:['Prices','Prices'],stats:['Stats','Stats'],ach:['Goals','Goals'],help:['Help','Help']};
-  for(const b of document.querySelectorAll('.navbtns [data-panel]')){const v=nav[b.dataset.panel];b.querySelector('.nl').textContent=v[0];b.querySelector('.ns').textContent=v[1];}
+  for(const b of document.querySelectorAll('.navbtns [data-panel]')){const v=nav[b.dataset.panel];if(!v)continue;b.querySelector('.nl').textContent=v[0];b.querySelector('.ns').textContent=v[1];}
+  {const sb=document.getElementById('setbtn');if(sb){sb.title='Settings';sb.setAttribute('aria-label','Settings');}}
   const p=document.getElementById('paused');if(p)p.textContent='PAUSED';
   for(const[id,t,a,x]of[['zin','Zoom in (+)','Zoom in'],['zout','Zoom out (−)','Zoom out'],['zfit','Show the whole line (space)','Show the whole line','Fit']]){const e=document.getElementById(id);if(e){e.title=t;e.setAttribute('aria-label',a);if(x)e.textContent=x;}}
 }
@@ -418,7 +439,7 @@ const ACH=[
  {id:'time',n:tr('Tidsresenär','Time traveler'),d:tr('Sälj en tidsmaskin.','Sell a time machine.'),r:1e9,p:()=>[S.sold.timemachine||0,1]}
 ];
 function checkAch(){for(const a of ACH){if(S.ach[a.id])continue;const[c,g]=a.p();if(c>=g){S.ach[a.id]=1;S.money+=a.r;S.total+=a.r;achToast(a);if(CG&&['sat','android','station','time'].includes(a.id))CG.happy();}}}
-function achToast(a){if(typeof tutOn==='function'&&tutOn())return;const el=$('achtoast');el.innerHTML=tr(`<b>Uppdrag klart</b><span>${a.n}</span><em>+${cash(a.r)}</em>`,`<b>Goal complete</b><span>${a.n}</span><em>+${cash(a.r)}</em>`);el.classList.add('show');clearTimeout(achToast.t);achToast.t=setTimeout(()=>el.classList.remove('show'),3500);if(panel==='ach')renderPanel();}
+function achToast(a){if(typeof tutOn==='function'&&tutOn())return;sfx('ach');const el=$('achtoast');el.innerHTML=tr(`<b>Uppdrag klart</b><span>${a.n}</span><em>+${cash(a.r)}</em>`,`<b>Goal complete</b><span>${a.n}</span><em>+${cash(a.r)}</em>`);el.classList.add('show');clearTimeout(achToast.t);achToast.t=setTimeout(()=>el.classList.remove('show'),3500);if(panel==='ach')renderPanel();}
 const LINE_COST=[0,200000,2500000,30000000,300000000];
 const GWMAX=30,GHMAX=20;
 
@@ -552,14 +573,14 @@ function place(x,y,t,d,silent,cfg){
   if(!canPlace(x,y,t,silent))return false;
   const c=machineCost(t);S.money-=c;
   const use=cfg||((copyCfg&&copyCfg.t===t)?copyCfg.cfg:null);
-  const o=mk(t,x,y,d,use,c,L());L().grid.set(key(x,y),o);
+  const o=mk(t,x,y,d,use,c,L());L().grid.set(key(x,y),o);sfx('place');
   if(t.startsWith('crafter')&&!silent&&!cfg)openInspector(o);
   return true;
 }
 function clearTile(t){let n=t.its.length+(t.wq||0)+(t.q?(t.qn||1):0)+(t.inp?1:0)+(t.hold?1:0)+t.cb.length+t.tq.length+t.oq.length;for(const k in t.buf)n+=t.buf[k];
   t.its=[];t.q=null;t.qn=0;t.wq=0;t.qw=0;t.inp=null;t.hold=null;t.buf={};t.cb=[];t.busy=false;t.timer=0;t.tq=[];t.oq=[];t.wrong=null;return n;}
 function clearTiles(ts,label){let n=0;for(const t of ts)n+=clearTile(t);toast(n?label+tr(': tog bort ',': removed ')+n+tr(' saker',' items'):tr('Inget att tömma','Nothing to empty'),!!n);}
-function removeAt(x,y){const t=tileAt(x,y);if(!t)return;S.money+=t.paid;L().grid.delete(key(x,y));if(sel===t)closeInspector();}
+function removeAt(x,y){const t=tileAt(x,y);if(!t)return;sfx('remove');S.money+=t.paid;L().grid.delete(key(x,y));if(sel===t)closeInspector();}
 const dirOf=(sx,sy)=>sx===1?0:sy===1?1:sx===-1?2:3;
 
 /* ============ SIMULATION ============ */
@@ -595,7 +616,8 @@ function routeCycle(t,outs){const n=outs.length;for(let k=0;k<n;k++){const o=out
 function earn(v){earnBucket+=v;if(v>0)S.total+=v;}
 function sell(item,t){t.ns=(t.ns||0)+1;
   const v=RES[item].v*priceMult();S.money+=v;earn(v);S.sold[item]=(S.sold[item]||0)+1;salesAcc[item]=(salesAcc[item]||0)+1;valAcc[item]=(valAcc[item]||0)+v;
-  if(t.line===L()&&floats.length<60)floats.push({x:t.x*TS+TS/2+(Math.random()*20-10),y:t.y*TS+6-Math.random()*8,txt:'+'+cash(v),life:1});
+  t.line._acc=(t.line._acc||0)+v;ordSold(item);if(t.line===L())sfx('sell');
+  if(SET.floats&&t.line===L()&&floats.length<60)floats.push({x:t.x*TS+TS/2+(Math.random()*20-10),y:t.y*TS+6-Math.random()*8,txt:'+'+cash(v),life:1});
 }
 let gOuts=new Map();
 function stepLine(line,dt){
@@ -652,8 +674,9 @@ function stepLine(line,dt){
 function update(dt){
   gOuts=new Map();for(const l of S.lines)for(const t of l.grid.values())if(t.t==='atout'){if(!gOuts.has(t.cfg.ch))gOuts.set(t.cfg.ch,[]);gOuts.get(t.cfg.ch).push(t);}
   for(const line of S.lines)stepLine(line,dt);
+  ordTick(dt);warnScan(dt);histTick(dt);
   secAcc+=dt;
-  if(secAcc>=1){secAcc-=1;earnWin.push(earnBucket);earnBucket=0;if(earnWin.length>60)earnWin.shift();
+  if(secAcc>=1){secAcc-=1;lineSecond();earnWin.push(earnBucket);earnBucket=0;if(earnWin.length>60)earnWin.shift();
     const ids=new Set([...Object.keys(ema),...Object.keys(salesAcc)]);
     for(const id of ids){ema[id]=(ema[id]||0)*.92+(salesAcc[id]||0)*.08;emaV[id]=(emaV[id]||0)*.92+(valAcc[id]||0)*.08;salesAcc[id]=0;valAcc[id]=0;}}
   for(let i=floats.length-1;i>=0;i--){const f=floats[i];f.life-=dt*.9;f.y-=dt*26;if(f.life<=0)floats.splice(i,1);}
@@ -726,6 +749,7 @@ function render(){
     const p=it.prog,e=DIRS[it.from],o=DIRS[t.d],cx=t.x*TS+TS/2,cy=t.y*TS+TS/2;let px,py;
     if(p<.5){const f=p*2;px=cx+e[0]*TS/2*(1-f);py=cy+e[1]*TS/2*(1-f);}else{const f=(p-.5)*2;px=cx+o[0]*TS/2*f;py=cy+o[1]*TS/2*f;}
     drawIt(g,it.item,px,py,isz);}
+  drawWarnings(g,vis);
   tutDraw(g);
   // area selection
   const selList=areaTiles();
@@ -822,7 +846,7 @@ areabar.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)
   else if(a==='newcol'){const v=+b.dataset.v;lastBeltCol=v;copyCfg={t:'roller',cfg:v?{col:v}:{}};updateAreabar();}
   else if(a==='copy')copyArea();else if(a==='empty')clearTiles(areaTiles(),tr('Markerade','Selected'));else if(a==='rotsel')rotateSel();else if(a==='slow'||a==='fast'){let n=0;for(const x of areaTiles())if(UPK[x.t]){const c0=tl(x);setSpd(x,a==='fast'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);n++;}toast(n+tr(' maskiner ',' machines ')+(a==='fast'?tr('snabbare','faster'):tr('långsammare','slower')),true);}else if(a==='del')deleteArea();else if(a==='rot')rotClip();else if(a==='cancel'){selT.clear();clip=null;setTool('select');}endEdit();});
 let toastT=0;
-function toast(msg,good){const el=$('toast');el.textContent=msg;el.className=good?'good show':'show';clearTimeout(toastT);toastT=setTimeout(()=>el.className=good?'good':'',2300);}
+function toast(msg,good,quiet){if(!good&&!quiet)sfx('error');const el=$('toast');el.textContent=msg;el.className=good?'good show':'show';clearTimeout(toastT);toastT=setTimeout(()=>el.className=good?'good':'',2300);}
 
 /* area edit */
 function areaTiles(){const out=[];for(const t of selT){if(L().grid.get(key(t.x,t.y))===t)out.push(t);else selT.delete(t);}return out;}
@@ -1045,7 +1069,9 @@ function renderPanel(){
     h+='</div>';
   } else if(panel==='stats'){
     h=head(tr('Statistik','Stats'))+tr(`<div class="cards" style="margin-bottom:6px"><div class="card"><span class="lbl">Inkomst nu</span><b style="font-size:22px" class="ok" id="st-rate"></b></div><div class="card"><span class="lbl">Tjänat totalt</span><b style="font-size:22px" id="st-total"></b></div><div class="card"><span class="lbl">Maskiner</span><b style="font-size:22px">${S.lines.reduce((a,l)=>a+l.grid.size,0)} på ${S.lines.length} linje${S.lines.length>1?'r':''}</b></div></div>`,`<div class="cards" style="margin-bottom:6px"><div class="card"><span class="lbl">Income now</span><b style="font-size:22px" class="ok" id="st-rate"></b></div><div class="card"><span class="lbl">Earned in total</span><b style="font-size:22px" id="st-total"></b></div><div class="card"><span class="lbl">Machines</span><b style="font-size:22px">${S.lines.reduce((a,l)=>a+l.grid.size,0)} on ${S.lines.length} line${S.lines.length>1?'s':''}</b></div></div>`)+
-      tr(`<h3>Försäljning just nu</h3><div class="tablewrap"><table><thead><tr><th>Resurs</th><th style="text-align:right">st / min</th><th style="text-align:right">kr / s</th><th style="text-align:right">Sålt totalt</th></tr></thead><tbody id="st-body"></tbody></table></div>`,`<h3>Sales right now</h3><div class="tablewrap"><table><thead><tr><th>Item</th><th style="text-align:right">per min</th><th style="text-align:right">$ / s</th><th style="text-align:right">Sold in total</th></tr></thead><tbody id="st-body"></tbody></table></div>`);
+      statsExtra()+tr(`<h3>Försäljning just nu</h3><div class="tablewrap"><table><thead><tr><th>Resurs</th><th style="text-align:right">st / min</th><th style="text-align:right">kr / s</th><th style="text-align:right">Sålt totalt</th></tr></thead><tbody id="st-body"></tbody></table></div>`,`<h3>Sales right now</h3><div class="tablewrap"><table><thead><tr><th>Item</th><th style="text-align:right">per min</th><th style="text-align:right">$ / s</th><th style="text-align:right">Sold in total</th></tr></thead><tbody id="st-body"></tbody></table></div>`);
+  } else if(panel==='settings'){
+    h=head(tr('Inställningar','Settings'))+settingsHTML();
   } else if(panel==='help'){
     h=head(tr('Hjälp och spara','Help and saving'))+tr(`<div class="help"><div><h3>Så spelar du</h3><ol>
 <li>En <b>startare</b> skapar råvaror. Den gul-svarta kanten är utgången.</li><li>Dra <b>rullband</b> från utgången till en <b>säljare</b>.</li>
@@ -1055,6 +1081,7 @@ function renderPanel(){
 <li>När du har råd: lås upp den <b>radioaktiva</b> delen. Radioaktiva startare gör uran och plutonium. <b>Centrifugen</b> anrikar dem (3 → 1, kostar energi) och <b>raffinaderiet</b> gör energiceller. Radioaktiva hantverkare behöver energi och lämnar <b>radioaktivt avfall</b> efter varje produkt. Avfallet kan inte säljas: sortera ut det med en väljare till ett <b>slutförvar</b>, eller till en <b>återvinnare</b> som gör plutonium av det.</li>
 <li><b>Linjetransportörer</b> (tangent G) skickar saker mellan linjer. Så kan en linje göra delar till en annan, vilket behövs för de största produkterna.</li>
 <li>Färga band i bandets inställningar, eller markera många med V och välj färg.</li>
+<li>Ibland dyker en <b>beställning</b> upp uppe till vänster. Acceptera den och sälj rätt antal innan tiden tar slut, så får du en extra bonus. Ett gult <b>!</b> visar maskiner och band som har fastnat.</li>
 <li>Köp <b>större yta</b> för en linje, eller fler <b>linjer</b> när en fabrik är full. Alla linjer går samtidigt, även när du är borta.</li></ol>
 <p>Ett föremål som en maskin inte vill ha stoppar bandet. Använd väljare för att skicka rätt sak till rätt maskin. Har fel sak fastnat: tryck <b>Töm</b> i maskinens inställningar, töm markerade maskiner med <b>V</b>, eller töm alla band på linjen i raden med linjer.</p></div>
 <div><h3>Tangenter</h3><dl>
@@ -1068,7 +1095,6 @@ function renderPanel(){
 <textarea id="exp" readonly></textarea><div class="row" style="margin-top:8px"><button data-act="copyexp">Kopiera koden</button></div>
 <p style="margin-top:14px">Klistra in en kod för att ladda en sparad fabrik:</p><textarea id="imp" placeholder="Klistra in koden här"></textarea><div class="row" style="margin-top:8px"><button class="gold" data-act="import">Ladda kod</button></div>
 <h3>Guiden</h3><p>Vill du se guiden igen? Den körs i en egen övningsfabrik. Din riktiga fabrik sparas och kommer tillbaka precis som den var när du är klar eller avslutar.</p><div class="row"><button data-act="restarttut" data-label="Starta om guiden" ${practice||tutOn()?'disabled':''}>Starta om guiden</button></div>
-<h3>Språk · Language</h3><div class="row"><button data-act="lang" data-v="sv" ${SV?'disabled':''}>Svenska</button><button data-act="lang" data-v="en" ${SV?'':'disabled'}>English</button></div>
 <h3>Fabriken</h3><div class="row"><button class="red" data-act="clearline" data-label="Riv allt på linje ${S.cur+1}">Riv allt på linje ${S.cur+1}</button><button class="red" data-act="reset" data-label="Börja om från början">Börja om från början</button></div></div></div>`,`<div class="help"><div><h3>How to play</h3><ol>
 <li>A <b>starter</b> creates raw materials. The yellow-black edge is its output.</li><li>Drag <b>conveyors</b> from the output to a <b>seller</b>.</li>
 <li>Process materials in a wire drawer, furnace, cutter or hydraulic press. That makes them worth more.</li>
@@ -1077,6 +1103,7 @@ function renderPanel(){
 <li>When you can afford it, unlock the <b>radioactive</b> tier. Radioactive starters make uranium and plutonium. The <b>centrifuge</b> enriches them (3 → 1, costs energy) and the <b>refinery</b> makes energy cells. Radioactive crafters need energy and leave <b>radioactive waste</b> after every product. Waste can't be sold: sort it out with a filter to a <b>waste disposal</b>, or to a <b>recycler</b> that turns it into plutonium.</li>
 <li><b>Line transporters</b> (key G) send items between lines. That way one line can make parts for another, which the biggest products need.</li>
 <li>Color belts in the belt's settings, or select many with V and pick a color.</li>
+<li>Now and then an <b>order</b> shows up in the top left. Accept it and sell the right amount before time runs out to earn an extra bonus. A yellow <b>!</b> marks machines and belts that are stuck.</li>
 <li>Buy a <b>bigger area</b> for a line, or more <b>lines</b> when a factory is full. All lines run at once, even while you're away.</li></ol>
 <p>An item a machine doesn't want stops the belt. Use filters to send the right item to the right machine. If the wrong item is stuck, press <b>Empty</b> in the machine's settings, empty selected machines with <b>V</b>, or empty all belts on the line from the line bar.</p></div>
 <div><h3>Keys</h3><dl>
@@ -1090,7 +1117,6 @@ function renderPanel(){
 <textarea id="exp" readonly></textarea><div class="row" style="margin-top:8px"><button data-act="copyexp">Copy code</button></div>
 <p style="margin-top:14px">Paste a code to load a saved factory:</p><textarea id="imp" placeholder="Paste the code here"></textarea><div class="row" style="margin-top:8px"><button class="gold" data-act="import">Load code</button></div>
 <h3>Guide</h3><p>Want to see the guide again? It runs in a separate practice factory. Your real factory is saved and comes back exactly as it was when you finish or quit.</p><div class="row"><button data-act="restarttut" data-label="Restart guide" ${practice||tutOn()?'disabled':''}>Restart guide</button></div>
-<h3>Language · Språk</h3><div class="row"><button data-act="lang" data-v="sv" ${SV?'disabled':''}>Svenska</button><button data-act="lang" data-v="en" ${SV?'':'disabled'}>English</button></div>
 <h3>Factory</h3><div class="row"><button class="red" data-act="clearline" data-label="Demolish everything on line ${S.cur+1}">Demolish everything on line ${S.cur+1}</button><button class="red" data-act="reset" data-label="Start over from scratch">Start over from scratch</button></div></div></div>`);
   } else if(panel==='offline'){
     h=tr(`<div class="shh"><h2>Välkommen tillbaka</h2></div><p>Medan du var borta i ${offlineInfo.time} tjänade fabriken</p><div class="big">${cash(offlineInfo.amount)}</div><div class="row"><button class="gold" data-act="close">Fortsätt</button></div>`,`<div class="shh"><h2>Welcome back</h2></div><p>While you were away for ${offlineInfo.time} your factory earned</p><div class="big">${cash(offlineInfo.amount)}</div><div class="row"><button class="gold" data-act="close">Continue</button></div>`);
@@ -1104,7 +1130,7 @@ function refreshPanel(){
   if(modal.hidden)return;
   if(panel==='ach'&&(refreshPanel.k=(refreshPanel.k||0)+1)%5===0){const st=sheet.scrollTop;renderPanel();sheet.scrollTop=st;return;}
   for(const b of sheet.querySelectorAll('[data-cost]'))if(b.dataset.cost!=='')b.disabled=S.money<+b.dataset.cost;
-  if(panel==='stats'){const r=$('st-rate');if(r)r.textContent=fmt(currentRate())+RATE;const tt=$('st-total');if(tt)tt.textContent=cash(S.total);
+  if(panel==='stats'){const sl=$('st-lines');if(sl)sl.innerHTML=linesRows();drawGraph();const r=$('st-rate');if(r)r.textContent=fmt(currentRate())+RATE;const tt=$('st-total');if(tt)tt.textContent=cash(S.total);
     const body=$('st-body');if(body){const ids=Object.keys(S.sold).sort((a,b)=>(emaV[b]||0)-(emaV[a]||0));
       body.innerHTML=ids.length?ids.map(id=>tr(`<tr><td><img alt="" src="${itemIcon(id)}">${RES[id].n}</td><td class="v" style="color:var(--ink)">${((ema[id]||0)*60).toFixed(1).replace('.',',')}</td><td class="v">${fmt(emaV[id]||0)}</td><td class="v" style="color:var(--ink)">${fmt(S.sold[id])}</td></tr>`,`<tr><td><img alt="" src="${itemIcon(id)}">${RES[id].n}</td><td class="v" style="color:var(--ink)">${((ema[id]||0)*60).toFixed(1)}</td><td class="v">${fmt(emaV[id]||0)}</td><td class="v" style="color:var(--ink)">${fmt(S.sold[id])}</td></tr>`)).join(''):tr('<tr><td colspan="4" style="color:var(--muted)">Inget sålt än.</td></tr>','<tr><td colspan="4" style="color:var(--muted)">Nothing sold yet.</td></tr>');}}
 }
@@ -1194,7 +1220,7 @@ function tutRender(){
 tutEl.addEventListener('click',e=>{const b=e.target.closest('[data-tut]');if(!b)return;
   if(b.dataset.tut==='next'){if(!tutIssues().any)tutAdvance();}
   else if(b.dataset.tut==='skip'){if(!tutArm){tutArm=true;b.textContent=practice?tr('Klicka igen för att gå tillbaka','Click again to go back'):tr('Klicka igen för att hoppa över','Click again to skip');setTimeout(()=>{tutArm=false;if(b.isConnected)b.textContent=practice?tr('Avsluta övningen','End practice'):tr('Hoppa över guiden','Skip the guide');},3000);return;}if(practice){endPractice();return;}S.tut.done=1;const g0=S.lines[0];if(!g0.grid.size){g0.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,g0));for(let x=3;x<=6;x++)g0.grid.set(key(x,3),mk('roller',x,3,0,null,10,g0));g0.grid.set(key(7,3),mk('seller',7,3,0,null,100,g0));}centerCam();tutRender();tutHL();save();}});
-function tutAdvance(){const st=TUT[S.tut.i];if(st.reward){S.money+=st.reward;S.total+=st.reward;toast(tr('Del ','Part ')+st.p+tr(' klar! +',' done! +')+cash(st.reward)+(st.rewardTxt?' '+st.rewardTxt:''),true);}
+function tutAdvance(){sfx('step');const st=TUT[S.tut.i];if(st.reward){S.money+=st.reward;S.total+=st.reward;toast(tr('Del ','Part ')+st.p+tr(' klar! +',' done! +')+cash(st.reward)+(st.rewardTxt?' '+st.rewardTxt:''),true);}
   if(st.end){if(practice){endPractice();return;}S.tut.done=1;centerCam();}else S.tut.i++;tutRender();tutHL();save();}
 function tutTick(){if(!tutOn()){if(!tutEl.hidden){tutEl.hidden=true;modal.classList.remove('tutpad');tutHL();}return;}let n=0;
   while(tutOn()&&TUT[S.tut.i].ok&&!tutIssues().any&&TUT[S.tut.i].ok()&&n++<30)tutAdvance();
@@ -1319,7 +1345,7 @@ window.addEventListener('blur',()=>keys.clear());
 
 /* ============ SAVE ============ */
 const SAVE_KEY='fabriksgolvet-v2';
-function serialize(){return{v:2,tut:S.tut,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
+function serialize(){return{v:2,tut:S.tut,ach:S.ach,stats:S.stats,money:S.money,upg:S.upg,raw:S.raw,rec:S.rec,unl:S.unl,total:S.total,sold:S.sold,cur:S.cur,ord:S.ord||null,on:S.ordNext==null?null:Math.round(S.ordNext),hist:S.hist||{s:[],l:[]},rate:currentRate(),t:Date.now(),ls:lastStarterRes,lr:lastRec,
   lines:S.lines.map(l=>({land:l.land||0,tiles:[...l.grid.values()].map(t=>[t.t,t.x,t.y,t.d,t.cfg,t.paid])}))};}
 const PRACT_KEY=SAVE_KEY+'-practice-backup';let practice=null;
 function save(){if(practice)return;try{STORE.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
@@ -1331,7 +1357,7 @@ function endPractice(){if(!practice)return;const d=JSON.parse(practice.backup),s
   if(secs>=30&&(d.rate||0)>0)applyOffline(secs,d.rate);else toast(tr('Tillbaka i din fabrik','Back in your factory'),true);}
 function loadData(d){
   S.ach=d.ach||{};S.stats=d.stats||{};S.money=d.money;S.upg=d.upg||{};S.raw=d.raw||{copper:1};S.rec=d.rec||{};S.unl=d.unl||{roller:1,starter:1,seller:1};S.total=d.total||0;S.sold=d.sold||{};
-  lastStarterRes=d.ls||'copper';lastRec=d.lr||null;
+  lastStarterRes=d.ls||'copper';lastRec=d.lr||null;S.ord=d.ord||null;S.ordNext=d.on==null?null:d.on;S.hist=d.hist&&d.hist.s?d.hist:{s:[],l:[]};
   S.lines=(d.lines||[[]]).map(en=>{const old=Array.isArray(en),arr=old?en:(en.tiles||[]);const line={grid:new Map(),land:old?((d.upg&&d.upg.land)||0):(en.land||0)};for(const[t,x,y,dd,cfg,paid]of arr)if(M[t])line.grid.set(key(x,y),mk(t,x,y,dd,cfg,paid,line));return line;});
   if(!S.lines.length)S.lines=[{grid:new Map(),land:0}];
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
@@ -1340,7 +1366,7 @@ function loadData(d){
   S.cur=Math.min(d.cur||0,S.lines.length-1);closeInspector();selT.clear();clip=null;renderLines();refreshToolbar();floorLand=-1;
 }
 function newGame(guide){
-  S.tut=guide?{i:0}:{done:1};S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];
+  S.tut=guide?{i:0}:{done:1};S.ach={};S.stats={};S.money=1000;S.upg={};S.raw={copper:1};S.rec={};S.unl={roller:1,starter:1,seller:1};S.total=0;S.sold={};lastStarterRes='copper';lastRec=null;earnWin=[];S.ord=null;S.ordNext=null;S.hist={s:[],l:[]};
   undoSt.length=0;redoSt.length=0;pendingEdit=null;
   const line={grid:new Map(),land:0};S.lines=[line];S.cur=0;
   if(!guide){line.grid.set(key(2,3),mk('starter',2,3,0,{res:'copper'},100,line));
@@ -1358,6 +1384,194 @@ let hiddenAt=0;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();save();}else if(hiddenAt&&!practice){applyOffline((Date.now()-hiddenAt)/1000,currentRate());hiddenAt=0;}});
 window.addEventListener('beforeunload',save);
 
+/* ============ SETTINGS ============ */
+const SET=Object.assign({sfx:.7,mus:.4,warn:1,orders:1,floats:1},(()=>{try{return JSON.parse(window.localStorage.getItem('af-settings')||'{}')||{};}catch(e){return{};}})());
+function saveSet(){try{window.localStorage.setItem('af-settings',JSON.stringify(SET));}catch(e){}}
+
+/* ============ AUDIO (synthesised, no files) ============ */
+const AU={ctx:null,sfx:null,mus:null,last:{},hold:false};
+function auInit(){
+  if(AU.ctx){if(AU.ctx.state==='suspended'&&!document.hidden&&!AU.hold)AU.ctx.resume();return;}
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{const c=new AC();AU.ctx=c;AU.sfx=c.createGain();AU.mus=c.createGain();const comp=c.createDynamicsCompressor();AU.sfx.connect(comp);AU.mus.connect(comp);comp.connect(c.destination);auVol();musStart();}catch(e){AU.ctx=null;}
+}
+function auVol(){if(!AU.ctx)return;AU.sfx.gain.value=SET.sfx*SET.sfx*.55;AU.mus.gain.value=SET.mus*SET.mus*.4;}
+window.addEventListener('pointerdown',auInit,true);window.addEventListener('keydown',auInit,true);
+document.addEventListener('visibilitychange',()=>{if(!AU.ctx)return;if(document.hidden)AU.ctx.suspend();else if(!AU.hold)AU.ctx.resume();});
+window.__afAudio=on=>{AU.hold=!on;if(AU.ctx){if(on&&!document.hidden)AU.ctx.resume();else AU.ctx.suspend();}};
+function tone(f0,f1,dur,type,vol,delay,dest){
+  const c=AU.ctx,t=c.currentTime+(delay||0),o=c.createOscillator(),g=c.createGain();
+  o.type=type||'square';o.frequency.setValueAtTime(f0,t);if(f1&&f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(dest||AU.sfx);o.start(t);o.stop(t+dur+.03);
+}
+const SFX={
+  click:()=>tone(1300,1300,.03,'square',.04),
+  place:()=>tone(520,780,.06,'square',.11),
+  remove:()=>tone(320,110,.11,'sawtooth',.1),
+  sell:()=>tone(1500+Math.random()*400,0,.05,'triangle',.05),
+  buy:()=>{tone(660,0,.07,'square',.11);tone(990,0,.11,'square',.11,.07);},
+  error:()=>tone(150,120,.15,'square',.12),
+  ach:()=>[523,659,784,1047].forEach((f,i)=>tone(f,0,.14,'square',.1,i*.09)),
+  order:()=>{tone(880,0,.13,'triangle',.2);tone(1175,0,.2,'triangle',.2,.13);},
+  done:()=>{[523,784,1047,1319,1568].forEach((f,i)=>tone(f,0,.14,'square',.1,i*.07));tone(2093,0,.35,'triangle',.08,.38);},
+  fail:()=>{tone(392,0,.16,'square',.09);tone(294,0,.28,'square',.09,.16);},
+  step:()=>{tone(784,0,.08,'square',.09);tone(1175,0,.13,'square',.09,.08);}
+};
+const SFX_GAP={click:.03,place:.05,remove:.05,sell:.14,error:.2};
+function sfx(n){if(!AU.ctx||AU.ctx.state!=='running'||SET.sfx<=0)return;const now=AU.ctx.currentTime,gap=SFX_GAP[n]||0;if(gap&&now-(AU.last[n]||0)<gap)return;AU.last[n]=now;try{SFX[n]();}catch(e){}}
+// calm generative chiptune: Am F C G, bass + soft arpeggio + sparse melody
+const MUS={timer:null,next:0,step:0};
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+const PROG=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],MEL=[69,72,74,76,79,81,84];
+function musStart(){if(MUS.timer)return;MUS.next=AU.ctx.currentTime+.4;MUS.timer=setInterval(musTick,120);}
+function musTick(){
+  const c=AU.ctx;if(!c||c.state!=='running')return;const spb=60/84/2;
+  if(MUS.next<c.currentTime-.05)MUS.next=c.currentTime+.05;
+  if(SET.mus<=0){MUS.next=c.currentTime+.05;return;}
+  while(MUS.next<c.currentTime+.45){
+    const s=MUS.step,bar=Math.floor(s/16)%PROG.length,ch=PROG[bar],i=s%16,d=MUS.next-c.currentTime;
+    if(i%8===0)tone(NOTE(ch[0]-12),0,spb*7.6,'triangle',.24,d,AU.mus);
+    if(i%2===0)tone(NOTE(ch[(i/2)%3]+12),0,spb*1.7,'square',.028,d,AU.mus);
+    if((i===4||i===10||(i===14&&bar%2))&&Math.random()<.65)tone(NOTE(MEL[(s*5+bar*3)%MEL.length]),0,spb*2.6,'triangle',.07,d,AU.mus);
+    MUS.step++;MUS.next+=spb;
+  }
+}
+
+/* ============ ORDERS ============ */
+const ordEl=$('order');
+const niceRound=v=>{if(v<100)return Math.round(v);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;};
+const ordBlocked=()=>!SET.orders||practice||(typeof tutOn==='function'&&tutOn());
+function ordGen(){
+  const c=Object.keys(ema).filter(id=>id!=='waste'&&RES[id]&&ema[id]>.03);if(!c.length)return null;
+  let tot=0;const w=c.map(id=>{const x=Math.sqrt(emaV[id]||ema[id]*RES[id].v)+1;tot+=x;return x;});
+  let r=Math.random()*tot,id=c[0];for(let i=0;i<c.length;i++){r-=w[i];if(r<=0){id=c[i];break;}}
+  const dur=[180,240,300][Math.floor(Math.random()*3)];
+  const qty=Math.max(5,Math.round(ema[id]*dur*(1.25+Math.random()*.35)));
+  const reward=niceRound(Math.max(qty*RES[id].v*priceMult()*.8,currentRate()*dur*.2,150));
+  return{st:'offer',item:id,qty,got:0,dur,left:60,reward};
+}
+function ordTick(dt){
+  if(ordBlocked())return;
+  const o=S.ord;
+  if(!o){S.ordNext=(S.ordNext==null?150:S.ordNext)-dt;if(S.ordNext<=0){S.ord=ordGen();S.ordNext=null;if(S.ord){sfx('order');ordRender(true);}else S.ordNext=60;}return;}
+  o.left-=dt;
+  if(o.left<=0){const act=o.st==='active';if(act){toast(tr('Beställningen hann inte bli klar','The order ran out of time'),false,true);sfx('fail');}
+    S.ord=null;S.ordNext=act?150+Math.random()*90:100+Math.random()*60;ordRender(true);}
+}
+function ordSold(id){
+  const o=S.ord;if(!o||o.st!=='active'||o.item!==id)return;o.got++;
+  if(o.got>=o.qty){S.money+=o.reward;S.total+=o.reward;S.stats.orders=(S.stats.orders||0)+1;toast(tr('Beställning klar! +','Order complete! +')+cash(o.reward),true);sfx('done');S.ord=null;S.ordNext=150+Math.random()*90;ordRender(true);}
+}
+const mmss=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function ordRender(full){
+  const o=S.ord,show=!!o&&!ordBlocked();ordEl.hidden=!show;if(!show){ordEl.dataset.st='';return;}
+  if(full||ordEl.dataset.st!==o.st||ordEl.dataset.it!==o.item){ordEl.dataset.st=o.st;ordEl.dataset.it=o.item;
+    ordEl.innerHTML=`<div class="oh"><b>${tr('Beställning','Order')}</b><span id="o-t"></span></div><div class="orow"><img alt="" src="${itemIcon(o.item)}"><div><div class="on">${o.st==='offer'?fmt(o.qty)+' × ':''}${RES[o.item].n}</div><div class="om" id="o-m"></div></div></div>`+
+      (o.st==='offer'?`<div class="row"><button class="gold" data-ord="yes">${tr('Acceptera','Accept')}</button><button data-ord="no">${tr('Nej tack','No thanks')}</button></div>`:`<div class="obar"><i id="o-b"></i></div>`);}
+  $('o-t').textContent=o.st==='offer'?tr('Svara inom ','Reply within ')+mmss(o.left):mmss(o.left)+tr(' kvar',' left');
+  $('o-m').innerHTML=o.st==='offer'?tr('Tid ','Time ')+mmss(o.dur)+` · <span class="ok">+${cash(o.reward)}</span>`:`<b>${fmt(o.got)}</b> / ${fmt(o.qty)} · <span class="ok">+${cash(o.reward)}</span>`;
+  if(o.st==='active')$('o-b').style.width=(100*Math.min(1,o.got/o.qty)).toFixed(1)+'%';
+}
+ordEl.addEventListener('click',e=>{const b=e.target.closest('[data-ord]');if(!b||!S.ord)return;
+  if(b.dataset.ord==='yes'){S.ord.st='active';S.ord.left=S.ord.dur;S.ord.got=0;sfx('buy');}else{S.ord=null;S.ordNext=120+Math.random()*60;}
+  ordRender(true);save();});
+
+/* ============ WARNINGS ============ */
+const SPLITS=['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'];
+function never(n,item,travel){ // n can never take this item from this side
+  const from=(travel+2)%4,R=RES[item]||{};
+  if(n.t==='roller')return n.d===from;
+  if(n.t==='seller')return item==='waste';
+  if(n.t==='disposal')return item!=='waste';
+  if(n.t==='tin'||n.t==='atin')return false;
+  if(SPLITS.includes(n.t))return from!==(n.d+2)%4;
+  if(n.d===from)return true;
+  switch(n.t){
+    case 'wire':case 'furnace':case 'cutter':case 'press':return R.kind!=='raw';
+    case 'cable':return R.kind!=='wire';
+    case 'refinery':return !(item in REFINE);
+    case 'centrifuge':return item!=='energy'&&R.kind!=='rad';
+    case 'recycler':return item!=='waste';
+    case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{if(item==='energy')return !M[n.t].rad;const r=n.cfg.rec&&RECMAP[n.cfg.rec];return !r||r.tier>M[n.t].mk||!r.in[item];}
+  }
+  return true;
+}
+function issue(t){
+  if(t.t==='roller'){const s=t.its.find(a=>a.prog>=1);if(!s)return false;const n=nbr(t,t.d);return !n||never(n,s.item,t.d);}
+  if(t.wrong&&time-(t.wrongAt||0)<1.5)return true;
+  const it=t.q||(t.wq?'waste':null);if(it&&t.qw>=1){const n=nbr(t,t.d);return !n||never(n,it,t.d);}
+  if(t.t==='centrifuge'&&t.energy<1&&t.cb.length===3)return true;
+  if(M[t.t].rad&&t.cfg.rec){const r=RECMAP[t.cfg.rec];if(r&&r.en&&(t.energy||0)<r.en&&Object.keys(r.in).every(k=>(t.buf[k]||0)>=r.in[k]))return true;}
+  return false;
+}
+let warnAcc=0;
+function warnScan(dt){warnAcc+=dt;if(warnAcc<.5)return;const d=warnAcc;warnAcc=0;
+  for(const l of S.lines){let n=0;for(const t of l.grid.values()){t._wt=issue(t)?(t._wt||0)+d:0;if(t._wt>=2)n++;}l._wn=n;}}
+const WARN_MAP=['....k....','...kyk...','...kyk...','..kykyk..','..kykyk..','.kyyyyyk.','.kyykyyk.','kkkkkkkkk'];
+function drawWarn(g,x,y){for(let r=0;r<WARN_MAP.length;r++)for(let c=0;c<9;c++){const ch=WARN_MAP[r][c];if(ch==='.')continue;g.fillStyle=ch==='k'?K:Y;g.fillRect(x+c*3,y+r*3,3,3);}}
+function drawWarnings(g,vis){if(!SET.warn||(typeof tutOn==='function'&&tutOn()))return;const bob=Math.round(Math.sin(time*4)*1.5);for(const t of vis)if(t._wt>=2)drawWarn(g,t.x*TS+TS-22,t.y*TS-10+bob);}
+function lineBadges(){const bs=linesEl.querySelectorAll('[data-line]');bs.forEach(b=>{const l=S.lines[+b.dataset.line];b.classList.toggle('lwarn',!!(SET.warn&&l&&l._wn));});}
+
+/* ============ LINE INCOME + HISTORY ============ */
+const lineRate=l=>l._win&&l._win.length?l._win.reduce((a,b)=>a+b,0)/l._win.length:0;
+function lineSecond(){for(const l of S.lines){(l._win||(l._win=[])).push(l._acc||0);l._acc=0;if(l._win.length>60)l._win.shift();}}
+let hsA=0,hlA=0,graphRange='m10';
+function histTick(dt){
+  if(!S.hist)S.hist={s:[],l:[]};hsA+=dt;hlA+=dt;
+  if(hsA>=10){hsA=0;S.hist.s.push(Math.round(currentRate()));if(S.hist.s.length>360)S.hist.s.shift();}
+  if(hlA>=300){hlA=0;const a=S.hist.s.slice(-30);S.hist.l.push(Math.round(a.reduce((x,y)=>x+y,0)/Math.max(1,a.length)));if(S.hist.l.length>288)S.hist.l.shift();}
+}
+function drawGraph(){
+  const cv=$('st-graph');if(!cv)return;const w=cv.parentElement.clientWidth-12,h=150,dpr=window.devicePixelRatio||1;if(w<50)return;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+  const Hs=S.hist||{s:[],l:[]},R={m10:[Hs.s,60,'−10 min'],h1:[Hs.s,360,'−1 h'],d1:[Hs.l,288,'−24 h']}[graphRange];
+  const data=R[0].slice(-R[1]).concat([Math.round(currentRate())]),N=R[1]+1;
+  const pl=64,pr=8,pt=10,pb=20,gw=w-pl-pr,gh=h-pt-pb,max=Math.max(10,...data)*1.12;
+  g.font='16px VT323,monospace';g.textBaseline='middle';
+  for(let i=0;i<=4;i++){const y=Math.round(pt+gh*(1-i/4));g.fillStyle='#2f333a';g.fillRect(pl,y,gw,1);g.fillStyle='#a8a190';g.textAlign='right';g.fillText(SV?fmtS(max*i/4)+' kr':'$'+fmtS(max*i/4),pl-6,y);}
+  g.textAlign='left';g.fillText(R[2],pl,h-8);g.textAlign='right';g.fillText(tr('nu','now'),pl+gw,h-8);
+  if(data.length<2){g.textAlign='center';g.fillText(tr('Samlar data… en punkt var 10:e sekund','Collecting data… one point every 10 seconds'),pl+gw/2,pt+gh/2);return;}
+  const X=i=>pl+gw*(1-(data.length-1-i)/(N-1)),Y=v=>pt+gh*(1-v/max);
+  g.beginPath();g.moveTo(X(0),Y(data[0]));for(let i=1;i<data.length;i++)g.lineTo(X(i),Y(data[i]));
+  g.strokeStyle='#9be36d';g.lineWidth=2;g.lineJoin='round';g.stroke();
+  g.lineTo(X(data.length-1),pt+gh);g.lineTo(X(0),pt+gh);g.closePath();g.fillStyle='rgba(155,227,109,.13)';g.fill();
+}
+function linesRows(){return S.lines.map((l,i)=>`<tr class="${i===S.cur?'curl':''}"><td>${tr('Linje ','Line ')}${i+1}</td><td class="v" style="color:var(--ink)">${l.grid.size}</td><td class="v" style="color:var(--ink)">${starterCount(l)}/${maxStarters()}</td><td class="v ok">${cash(lineRate(l))}/s</td><td class="v">${l._wn?`<span class="warn">${l._wn} !</span>`:'–'}</td><td style="text-align:right"><button class="chip" data-goline="${i}">${tr('Visa','Show')}</button></td></tr>`).join('');}
+function statsExtra(){
+  const ch=(v,t)=>`<button class="chip${graphRange===v?' on':''}" data-grange="${v}">${t}</button>`;
+  return `<h3>${tr('Inkomst över tid','Income over time')}</h3><div class="row" style="margin-bottom:6px">${ch('m10','10 min')}${ch('h1',tr('1 timme','1 hour'))}${ch('d1',tr('24 timmar','24 hours'))}</div><div class="graphwrap"><canvas id="st-graph" height="150"></canvas></div>`+
+    `<h3>${tr('Linjer','Lines')}</h3><div class="tablewrap"><table><thead><tr><th>${tr('Linje','Line')}</th><th style="text-align:right">${tr('Maskiner','Machines')}</th><th style="text-align:right">${tr('Startare','Starters')}</th><th style="text-align:right">${tr('Inkomst','Income')}</th><th style="text-align:right">${tr('Fastnat','Stuck')}</th><th></th></tr></thead><tbody id="st-lines">${linesRows()}</tbody></table></div>`;
+}
+sheet.addEventListener('click',e=>{
+  const g=e.target.closest('[data-grange]');if(g){graphRange=g.dataset.grange;sheet.querySelectorAll('[data-grange]').forEach(b=>b.classList.toggle('on',b===g));drawGraph();return;}
+  const l=e.target.closest('[data-goline]');if(l){closePanel();switchLine(+l.dataset.goline);renderLines();}
+});
+
+/* ============ SETTINGS PANEL ============ */
+function settingsHTML(){
+  const tg=(k,t)=>`<button class="chip${SET[k]?' on':''}" data-set="${k}">${SET[k]?'✓':'○'} ${t}</button>`;
+  const sl=(k,t)=>`<div class="setrow"><label for="set-${k}">${t}</label><input type="range" id="set-${k}" data-vol="${k}" min="0" max="100" step="5" value="${Math.round(SET[k]*100)}"><span id="set-${k}-v">${Math.round(SET[k]*100)} %</span></div>`;
+  return `<h3>${tr('Ljud','Sound')}</h3>${sl('sfx',tr('Ljudeffekter','Sound effects'))}${sl('mus',tr('Musik','Music'))}`+
+    `<h3>${tr('Spelet','Game')}</h3><div class="row">${tg('orders',tr('Beställningar','Orders'))}${tg('warn',tr('Varningsikoner','Warning icons'))}${tg('floats',tr('Pengar som flyger upp','Floating cash'))}</div>`+
+    `<h3>Språk · Language</h3><div class="row"><button data-act="lang" data-v="sv" ${SV?'disabled':''}>Svenska</button><button data-act="lang" data-v="en" ${SV?'':'disabled'}>English</button></div>`;
+}
+sheet.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.vol;if(!k)return;SET[k]=(+e.target.value)/100;auVol();const v=$('set-'+k+'-v');if(v)v.textContent=e.target.value+' %';});
+sheet.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.vol;if(!k)return;saveSet();if(k==='sfx')sfx('buy');});
+sheet.addEventListener('click',e=>{const b=e.target.closest('[data-set]');if(!b)return;const k=b.dataset.set;SET[k]=SET[k]?0:1;saveSet();
+  if(k==='orders'&&!SET[k]&&S.ord&&S.ord.st==='offer')S.ord=null;
+  const st=sheet.scrollTop;renderPanel();sheet.scrollTop=st;ordRender(true);lineBadges();});
+// gear icon for the settings button
+(()=>{const m=['......KKKK......','......KYYK......','..KK.KYYYYK.KK..','..KYKKYYYYKKYK..','..KYYYYYYYYYYK..','...KYYyyyyYYK...','KKKYYyKKKKyYYKKK','KYYYYyKDDKyYYYYK','KYYYYyKDDKyYYYYK','KKKYYyKKKKyYYKKK','...KYYyyyyYYK...','..KYYYYYYYYYYK..','..KYKKyyyyKKYK..','..KK.KyyyyK.KK..','......KyyK......','......KKKK......'];
+  const C={K,Y,y:'#c9952a',D:DK},c=cv(16,16),g=c.getContext('2d');m.forEach((r,y)=>[...r].forEach((ch,x)=>{if(C[ch])P(g,x,y,C[ch]);}));const im=$('gearimg');if(im)im.src=c.toDataURL();})();
+
+/* ============ SOUND HOOKS ============ */
+let moneyBefore=0;
+for(const el of [modal,linesEl,ordEl])el.addEventListener('click',()=>{moneyBefore=S.money;},true);
+for(const el of [modal,linesEl])el.addEventListener('click',()=>{if(S.money<moneyBefore-.5)sfx('buy');});
+document.addEventListener('click',e=>{if(e.target.closest('button'))sfx('click');});
+
 /* ============ LOOP ============ */
 let lastT=performance.now(),uiAcc=0,saveAcc=0;
 function frame(now){
@@ -1369,7 +1583,7 @@ function frame(now){
   render();
   {const zl=$('zlv'),zt=Math.round(cam.z*100)+'%';if(zl.textContent!==zt)zl.textContent=zt;$('zin').disabled=cam.z>=3-1e-6;$('zout').disabled=cam.z<=.35+1e-6;}
   uiAcc+=dt;if(uiAcc>.2){uiAcc=0;$('money').textContent=cash(S.money);$('rate').textContent=fmt(currentRate())+RATE;
-    {const r=currentRate();if(r>(S.stats.bestRate||0))S.stats.bestRate=r;}checkAch();updAchBtn();tutTick();
+    {const r=currentRate();if(r>(S.stats.bestRate||0))S.stats.bestRate=r;}checkAch();updAchBtn();tutTick();ordRender(false);lineBadges();
     $('startc').textContent=starterCount()+'/'+maxStarters();refreshToolbar();updateLive();refreshPanel();
     for(const nb of linesEl.querySelectorAll('[data-cost]'))nb.disabled=S.money<+nb.dataset.cost;renderUndo();}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save();}
