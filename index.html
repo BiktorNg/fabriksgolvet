@@ -93,6 +93,7 @@ body.short #order{top:8px;width:224px;padding:6px 8px;gap:4px}
 #st-graph{display:block;width:100%;height:150px}
 tr.curl td{color:var(--gold)}
 .setrow{display:grid;grid-template-columns:150px 1fr 60px;gap:12px;align-items:center;margin:8px 0;max-width:560px}
+.rchips{display:flex;flex-wrap:wrap;gap:5px}.rchip{position:relative;width:38px;height:36px;padding:0;display:flex;align-items:center;justify-content:center}.rchip img{width:24px;height:24px;image-rendering:pixelated}.rchip.on{background:#6e5a1a;box-shadow:inset 2px 2px 0 var(--gold),0 0 0 2px var(--edge)}.rchip i{position:absolute;right:-4px;bottom:-5px;font-style:normal;font-weight:700;font-size:15px;line-height:1;padding:1px 3px;background:#111;color:var(--gold);box-shadow:0 0 0 2px var(--edge)}
 .songrow{display:flex;gap:10px;align-items:center;margin:4px 0 8px;color:var(--muted);flex-wrap:wrap}.songrow b{color:var(--ink);font-weight:600}
 .setrow span{font-family:var(--num);font-size:19px;text-align:right}
 input[type=range]{-webkit-appearance:none;appearance:none;height:10px;background:var(--lo);box-shadow:inset 2px 2px 0 #000;outline:none;width:100%;margin:0;cursor:pointer}
@@ -246,7 +247,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v3.7</div>
+  <div id="ver">v4.0</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -313,6 +314,7 @@ const PROD_MAP={
  station:["...kk...","..kssk..","kkkSSkkk","uukggkuu","uukggkuu","kkkSSkkk","..kssk..","...kk..."],
  android:["..kkkk..",".kwwwwk.",".kegewk.",".kwwwwk.","kkkppkkk","kwkppkwk","..kwwk..","..k..k.."],
  timemachine:[".kkkkkk.","kyyyyyyk",".kpyypk.","..kppk..","..kyyk..",".kyppyk.","kyyyyyyk",".kkkkkk."],
+ nuke:["..kkkk..",".kd..dk.","..kkkk..",".kGyyGk.","kGGkkGGk","kGGyyGGk",".kGGGGk.","..kkkk.."],
  satellite:["...y....","...k....","kk.kk.kk","uukSSkuu","uukSskuu","kk.kk.kk","...k....","........"]
 };
 
@@ -356,7 +358,8 @@ const RECIPES=[
  {id:'qcomp',n:tr('Kvantdator','Quantum computer'),tier:4,in:{computer:1,processor:2,diamond_wire:1,shield:1},en:4,cost:120e6},
  {id:'station',n:tr('Rymdstation','Space station'),tier:5,in:{satellite:1,core:2,fusionbat:2,shield:2},en:6,cost:300e6},
  {id:'android',n:'Android',tier:5,in:{robot:1,qcomp:1,fusionbat:1},en:5,cost:500e6},
- {id:'timemachine',n:tr('Tidsmaskin','Time machine'),tier:5,in:{qcomp:2,core:2,laser:2,pure_pu:2},en:8,cost:1e9}
+ {id:'timemachine',n:tr('Tidsmaskin','Time machine'),tier:5,in:{qcomp:2,core:2,laser:2,pure_pu:2},en:8,cost:1e9},
+ {id:'nuke',n:tr('Atombomb','Atomic bomb'),tier:5,in:{core:3,fusionbat:2,qcomp:1,pure_pu:4,enriched_u:4,shield:3},en:16,cost:3e9}
 ];
 const RECMAP={};
 for(const r of RECIPES){let s=0;for(const k in r.in)s+=RES[k].v*r.in[k];r.en=r.en||0;s+=r.en*RES.energy.v;r.v=Math.round(s*(r.tier>=4?3:1.8));RES[r.id]={n:r.n,v:r.v,kind:'product',tier:r.tier};RECMAP[r.id]=r;}
@@ -373,17 +376,17 @@ const M={
  crafter1:{n:tr('Hantverkare MK1','Crafter MK1'),key:'9',unlock:3000,cost:1500,mk:1,d:tr('Bygger produkter enligt en ritning. Klarar nivå 1-ritningar.','Builds products from a blueprint. Handles tier 1 blueprints.')},
  crafter2:{n:tr('Hantverkare MK2','Crafter MK2'),key:'9',unlock:80000,cost:15000,mk:2,d:tr('Klarar ritningar upp till nivå 2.','Handles blueprints up to tier 2.')},
  crafter3:{n:tr('Hantverkare MK3','Crafter MK3'),key:'9',unlock:800000,cost:100000,mk:3,d:tr('Klarar ritningar upp till nivå 3.','Handles blueprints up to tier 3.')},
- crafter4:{n:tr('Radioaktiv hantverkare MK1','Radioactive crafter MK1'),key:'9',unlock:60e6,cost:5e6,mk:4,rad:1,d:tr('Klarar ritningar upp till nivå 4. Behöver energiceller för radioaktiva ritningar och lagrar upp till 20 energi.','Handles blueprints up to tier 4. Needs energy cells for radioactive blueprints and stores up to 20 energy.')},
- crafter5:{n:tr('Radioaktiv hantverkare MK2','Radioactive crafter MK2'),key:'9',unlock:250e6,cost:15e6,mk:5,rad:1,d:tr('Klarar alla ritningar. Behöver energiceller för radioaktiva ritningar och lagrar upp till 20 energi.','Handles all blueprints. Needs energy cells for radioactive blueprints and stores up to 20 energy.')},
+ crafter4:{n:tr('Radioaktiv hantverkare MK1','Radioactive crafter MK1'),key:'9',unlock:60e6,cost:5e6,mk:4,rad:1,d:tr('Klarar ritningar upp till nivå 4. Behöver energiceller för radioaktiva ritningar och lagrar upp till 50 energi.','Handles blueprints up to tier 4. Needs energy cells for radioactive blueprints and stores up to 50 energy.')},
+ crafter5:{n:tr('Radioaktiv hantverkare MK2','Radioactive crafter MK2'),key:'9',unlock:250e6,cost:15e6,mk:5,rad:1,d:tr('Klarar alla ritningar. Behöver energiceller för radioaktiva ritningar och lagrar upp till 50 energi.','Handles all blueprints. Needs energy cells for radioactive blueprints and stores up to 50 energy.')},
  radstarter:{n:tr('Radioaktiv startare','Radioactive starter'),key:'2',unlock:25e6,cost:1e6,d:tr('Skapar uran eller plutonium. Räknas mot gränsen för startare.','Creates uranium or plutonium. Counts toward the starter limit.')},
  refinery:{n:tr('Raffinaderi','Refinery'),key:'8',unlock:40e6,cost:2e6,d:tr('Gör energiceller: uran 2 st, plutonium 3 st, anrikat uran 7 st, renat plutonium 11 st.','Makes energy cells: uranium 2, plutonium 3, enriched uranium 7, purified plutonium 11.')},
- centrifuge:{n:tr('Centrifug','Centrifuge'),key:'8',unlock:50e6,cost:3e6,d:tr('Anrikar 3 uran till anrikat uran, eller 3 plutonium till renat plutonium. Varje körning kostar 1 energicell och den lagrar upp till 10.','Enriches 3 uranium into enriched uranium, or 3 plutonium into purified plutonium. Each run costs 1 energy cell, and it stores up to 10.')},
+ centrifuge:{n:tr('Centrifug','Centrifuge'),key:'8',unlock:50e6,cost:3e6,d:tr('Anrikar 3 uran till anrikat uran, eller 3 plutonium till renat plutonium. Varje körning kostar 1 energicell och den lagrar upp till 30.','Enriches 3 uranium into enriched uranium, or 3 plutonium into purified plutonium. Each run costs 1 energy cell, and it stores up to 30.')},
  recycler:{n:tr('Återvinnare','Recycler'),key:'8',unlock:90e6,cost:4e6,d:tr('Gör om 4 radioaktivt avfall till 1 plutonium.','Turns 4 radioactive waste into 1 plutonium.')},
  disposal:{n:tr('Slutförvar','Waste disposal'),key:'3',unlock:5e6,cost:200000,d:tr('Tar emot radioaktivt avfall från alla håll och gör sig av med det. Tar inte emot något annat.','Accepts radioactive waste from every side and gets rid of it. Accepts nothing else.')},
  splitter:{n:tr('Delare','Splitter'),key:'0',unlock:5000,cost:500,d:tr('Tar emot bakifrån. Skickar varannan sak åt vänster och varannan åt höger.','Accepts from the back. Sends every other item left and every other item right.')},
  lsplit:{n:tr('Vänsterdelare','Left splitter'),key:'0',unlock:12000,cost:800,d:tr('Tar emot bakifrån. Skickar varannan sak framåt och varannan åt vänster.','Accepts from the back. Sends every other item forward and every other item left.')},
  rsplit:{n:tr('Högerdelare','Right splitter'),key:'0',unlock:12000,cost:800,d:tr('Tar emot bakifrån. Skickar varannan sak framåt och varannan åt höger.','Accepts from the back. Sends every other item forward and every other item right.')},
- asplit:{n:tr('Avancerad delare','Advanced splitter'),key:'0',unlock:150000,cost:8000,d:tr('Delar mellan vänster, fram och höger i det förhållande du väljer.','Splits between left, forward and right in the ratio you choose.')},
+ asplit:{n:tr('Avancerad delare','Advanced splitter'),key:'0',unlock:150000,cost:8000,d:tr('Delar mellan vänster, fram och höger i det förhållande du väljer. Du kan också välja vilka varor som alltid ska åt ett visst håll.','Splits between left, forward and right in the ratio you choose. You can also pick items that always go a certain way.')},
  lsel:{n:tr('Vänsterväljare','Left filter'),key:'F',unlock:20000,cost:1500,d:tr('Vald resurs går åt vänster. Allt annat går rakt fram.','The chosen item goes left. Everything else goes straight ahead.')},
  rsel:{n:tr('Högerväljare','Right filter'),key:'F',unlock:20000,cost:1500,d:tr('Vald resurs går åt höger. Allt annat går rakt fram.','The chosen item goes right. Everything else goes straight ahead.')},
  msel:{n:tr('Multiväljare','Multi filter'),key:'F',unlock:90000,cost:5000,d:tr('En vald resurs åt vänster, en annan åt höger, resten rakt fram.','One chosen item goes left, another goes right, the rest straight ahead.')},
@@ -588,7 +591,7 @@ const isProc=t=>PROC.includes(t);
 function accept(t,item,travel){
   const from=(travel+2)%4,back=(t.d+2)%4;
   switch(t.t){
-    case 'roller':{if(t.d===from||t.its.length>=72)return false;let c=0;for(const a of t.its)if(a.item===item&&++c>=24)return false;t.its.push({item,prog:0,from});return true;}
+    case 'roller':{if(t.d===from||t.its.length>=200)return false;let c=0;for(const a of t.its)if(a.item===item&&++c>=60)return false;t.its.push({item,prog:0,from});return true;}
     case 'seller':if(item==='waste')return false;sell(item,t);return true;
     case 'disposal':if(item!=='waste')return false;t.n=(t.n||0)+1;S.stats.waste=(S.stats.waste||0)+1;return true;
     case 'wire':case 'furnace':case 'cutter':case 'press':
@@ -597,16 +600,16 @@ function accept(t,item,travel){
       if(t.d===from||t.busy||RES[item].kind!=='wire'||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
     case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{
       if(t.d===from)return false;
-      if(item==='energy'&&M[t.t].rad){if(t.energy>=20)return false;t.energy++;return true;}
+      if(item==='energy'&&M[t.t].rad){if(t.energy>=50)return false;t.energy++;return true;}
       if(!t.cfg.rec||RECMAP[t.cfg.rec].tier>M[t.t].mk)return false;const need=RECMAP[t.cfg.rec].in[item];
-      if(!need){t.wrong=item;t.wrongAt=time;return false;}if((t.buf[item]||0)>=need*2)return false;t.buf[item]=(t.buf[item]||0)+1;return true;}
+      if(!need){t.wrong=item;t.wrongAt=time;return false;}if((t.buf[item]||0)>=need*6)return false;t.buf[item]=(t.buf[item]||0)+1;return true;}
     case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':case 'lsel':case 'rsel':case 'msel':
       if(from!==back||t.hold)return false;t.hold=item;t.timer=0;return true;
-    case 'centrifuge':if(t.d===from)return false;if(item==='energy'){if(t.energy>=10)return false;t.energy++;return true;}
+    case 'centrifuge':if(t.d===from)return false;if(item==='energy'){if(t.energy>=30)return false;t.energy++;return true;}
       if(RES[item].kind!=='rad'||t.busy||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
     case 'recycler':if(t.d===from||item!=='waste'||t.busy||t.cb.length>=4)return false;t.cb.push(item);return true;
     case 'refinery':if(t.d===from||t.inp||!(item in REFINE))return false;t.inp=item;t.timer=0;return true;
-    case 'tin':case 'atin':if(t.tq.length>=3)return false;t.tq.push({item,age:0});return true;
+    case 'tin':case 'atin':if(t.tq.length>=10)return false;t.tq.push({item,age:0});return true;
   }
   return false;
 }
@@ -654,8 +657,9 @@ function stepLine(line,dt){
       case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':
         if(t.hold){t.timer+=dt;if(t.timer>=.1){const l=(t.d+3)%4,r=(t.d+1)%4,f=t.d;let o;
           if(t.t==='splitter')o=[l,r];else if(t.t==='lsplit')o=[f,l];else if(t.t==='rsplit')o=[f,r];
+          else if(t.cfg.rules&&t.cfg.rules[t.hold]!=null){const dd=[l,f,r][t.cfg.rules[t.hold]];if(push(t,t.hold,dd))t.hold=null;o=null;}
           else{o=[];const[a,b,c]=t.cfg.ratio;for(let i=0;i<a;i++)o.push(l);for(let i=0;i<b;i++)o.push(f);for(let i=0;i<c;i++)o.push(r);if(!o.length)o=[f];}
-          routeCycle(t,o);}}break;
+          if(o)routeCycle(t,o);}}break;
       case 'lsel':case 'rsel':case 'msel':
         if(t.hold){t.timer+=dt;if(t.timer>=.1){let o=t.d;
           if(t.t==='lsel'&&t.hold===t.cfg.res)o=(t.d+3)%4;else if(t.t==='rsel'&&t.hold===t.cfg.res)o=(t.d+1)%4;
@@ -664,7 +668,7 @@ function stepLine(line,dt){
       case 'tin':case 'atin':{
         for(const e of t.tq)e.age+=dt;
         if(t.tq.length&&t.tq[0].age>=1){const list=(t.t==='atin'?gOuts:outs).get(t.cfg.ch)||[];
-          for(let k=0;k<list.length;k++){const o=list[(t.idx+k)%list.length];if(o.oq.length<3){if(t.t==='atin'&&o.line!==t.line)S.stats.linked=(S.stats.linked||0)+1;o.oq.push(t.tq.shift().item);t.idx=(t.idx+k+1)%list.length;break;}}}
+          for(let k=0;k<list.length;k++){const o=list[(t.idx+k)%list.length];if(o.oq.length<10){if(t.t==='atin'&&o.line!==t.line)S.stats.linked=(S.stats.linked||0)+1;o.oq.push(t.tq.shift().item);t.idx=(t.idx+k+1)%list.length;break;}}}
         break;}
       case 'tout':case 'atout':if(t.oq.length&&push(t,t.oq[0],t.d))t.oq.shift();break;
     }
@@ -711,7 +715,7 @@ function drawTile(g,t,live){
   switch(t.t){
     case 'starter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/spawnInt(tl(t)),'#7fd0ff');break;
     case 'radstarter':drawIt(g,c.res,cx,cy,16);if(live)pbar(g,x,y,t.timer/radInt(tl(t)),'#7be35a');break;
-    case 'centrifuge':if(live){if(t.cb.length)drawIt(g,t.cb[0],cx,cy-2,14);for(let i=0;i<3;i++)P(g,x+16+i*6,y+TS-12,i<t.cb.length?'#7be35a':K,4,4);if(t.busy)pbar(g,x,y,t.timer/centTime(tl(t)),'#c8ff3a');P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/10));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
+    case 'centrifuge':if(live){if(t.cb.length)drawIt(g,t.cb[0],cx,cy-2,14);for(let i=0;i<3;i++)P(g,x+16+i*6,y+TS-12,i<t.cb.length?'#7be35a':K,4,4);if(t.busy)pbar(g,x,y,t.timer/centTime(tl(t)),'#c8ff3a');P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/30));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
     case 'recycler':if(live){for(let i=0;i<4;i++)P(g,x+13+i*6,y+TS-12,i<t.cb.length?Y:K,4,4);if(t.busy)pbar(g,x,y,t.timer/centTime(tl(t)),Y);}break;
     case 'refinery':if(live&&t.inp){drawIt(g,t.inp,cx,cy,14);pbar(g,x,y,t.timer/refTime(tl(t)),'#7be35a');}break;
     case 'wire':case 'furnace':case 'cutter':case 'press':if(live&&t.inp){drawIt(g,t.inp,cx,cy,16);pbar(g,x,y,t.timer/mTime(t.t,tl(t)),Y);}break;
@@ -719,8 +723,9 @@ function drawTile(g,t,live){
     case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':
       if(c.rec)drawIt(g,c.rec,cx,cy-2,24);else{g.fillStyle=Y;g.font='700 22px "Pixelify Sans",monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('?',cx,cy-2);}
       if(live&&t.busy)pbar(g,x,y,t.timer/craftTime(tl(t)),'#c7a6ff');
-      if(M[t.t].rad){P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/20));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
+      if(M[t.t].rad){P(g,x+TS-9,y+8,K,5,TS-16);const eh=Math.round((TS-18)*Math.min(1,(t.energy||0)/50));if(eh>0)P(g,x+TS-8,y+TS-9-eh,'#7be35a',3,eh);}break;
     case 'lsel':case 'rsel':{const o=t.t==='lsel'?(t.d+3)%4:(t.d+1)%4;drawIt(g,c.res,cx+DIRS[o][0]*13,cy+DIRS[o][1]*13,16);break;}
+    case 'asplit':if(c.rules){const seen={};for(const k in c.rules){const i=c.rules[k];if(seen[i]||!RES[k])continue;seen[i]=1;const o=[(t.d+3)%4,t.d,(t.d+1)%4][i];drawIt(g,k,cx+DIRS[o][0]*13,cy+DIRS[o][1]*13,14);}}break;
     case 'msel':drawIt(g,c.l,cx+DIRS[(t.d+3)%4][0]*13,cy+DIRS[(t.d+3)%4][1]*13,16);drawIt(g,c.r,cx+DIRS[(t.d+1)%4][0]*13,cy+DIRS[(t.d+1)%4][1]*13,16);break;
     case 'tin':case 'tout':case 'atin':case 'atout':g.font='26px VT323,monospace';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#000';g.fillText(c.ch,cx+2,cy+2);g.fillStyle={tin:'#d9c2ff',tout:'#ffd6ad',atin:'#bfe8ff',atout:'#cdf2b0'}[t.t];g.fillText(c.ch,cx,cy);break;
   }
@@ -922,7 +927,11 @@ function renderInspector(){
   else if(t.t==='lsel'||t.t==='rsel'){h+=tr(`<div class="isec"><h4>Skicka åt ${t.t==='lsel'?'vänster':'höger'}</h4><div class="chips">${reachable().map(k=>chip(k,'res',c.res===k)).join('')}</div></div>`,`<div class="isec"><h4>Send ${t.t==='lsel'?'left':'right'}</h4><div class="chips">${reachable().map(k=>chip(k,'res',c.res===k)).join('')}</div></div>`);}
   else if(t.t==='msel'){h+=tr(`<div class="isec"><h4>Åt vänster</h4><div class="chips">${reachable().map(k=>chip(k,'ml',c.l===k)).join('')}</div></div><div class="isec"><h4>Åt höger</h4><div class="chips">${reachable().map(k=>chip(k,'mr',c.r===k)).join('')}</div></div>`,`<div class="isec"><h4>Left</h4><div class="chips">${reachable().map(k=>chip(k,'ml',c.l===k)).join('')}</div></div><div class="isec"><h4>Right</h4><div class="chips">${reachable().map(k=>chip(k,'mr',c.r===k)).join('')}</div></div>`);}
   else if(t.t==='asplit'){h+=tr(`<div class="isec"><h4>Förhållande</h4><div class="ratio">`,`<div class="isec"><h4>Ratio</h4><div class="ratio">`);
-    [tr('Vänster','Left'),tr('Fram','Forward'),tr('Höger','Right')].forEach((n,i)=>{h+=`<span>${n}</span><span></span><button data-act="rm" data-v="${i}">−</button><b>${c.ratio[i]}</b><button data-act="rp" data-v="${i}">+</button>`;});h+=`</div></div>`;}
+    [tr('Vänster','Left'),tr('Fram','Forward'),tr('Höger','Right')].forEach((n,i)=>{h+=`<span>${n}</span><span></span><button data-act="rm" data-v="${i}">−</button><b>${c.ratio[i]}</b><button data-act="rp" data-v="${i}">+</button>`;});h+=`</div></div>`;
+    const ru=c.rules||{},its=reachable();
+    const AR=['←','↑','→'],sorted=[...its].sort((a,b)=>(ru[a]==null)-(ru[b]==null));
+    h+=`<div class="isec"><h4>${tr('Sortera efter vara','Sort by item')}</h4><div class="spdtxt" style="margin-bottom:6px">${tr('Klicka på en vara för att välja håll: ← vänster, ↑ rakt fram, → höger, sedan av igen. Varor utan pil delas enligt förhållandet ovan.','Click an item to pick its way: ← left, ↑ forward, → right, then off again. Items without an arrow are split by the ratio above.')}</div><div class="rchips">`+
+      sorted.map(k=>`<button class="rchip${ru[k]!=null?' on':''}" data-act="rulec" data-v="${k}" title="${RES[k].n}" aria-label="${RES[k].n}"><img alt="" src="${itemIcon(k)}">${ru[k]!=null?`<i>${AR[ru[k]]}</i>`:''}</button>`).join('')+`</div></div>`;}
   else if(t.t==='tin'||t.t==='tout'||t.t==='atin'||t.t==='atout'){h+=tr(`<div class="isec"><h4>Nummer${t.t[0]==='a'?' (gäller alla linjer)':''}</h4><div class="chips">`,`<div class="isec"><h4>Number${t.t[0]==='a'?' (works across all lines)':''}</h4><div class="chips">`);for(let i=1;i<=9;i++)h+=`<button class="chip${c.ch===i?' on':''}" data-act="ch" data-v="${i}" style="padding:4px 10px">${i}</button>`;h+=`</div></div>`;}
   if(t.t==='roller')h+=tr(`<div class="isec"><h4>Färg</h4><div class="sws">${swatches('col',c.col)}</div><div class="spdtxt">Tips: markera många band med V och färga alla på en gång.</div></div>`,`<div class="isec"><h4>Color</h4><div class="sws">${swatches('col',c.col)}</div><div class="spdtxt">Tip: select many belts with V and color them all at once.</div></div>`);
   if(UPK[t.t]){const m=lv(UPK[t.t]),cur=tl(t),auto=c.spd==null;
@@ -944,19 +953,20 @@ function updateLive(){
     case 'refinery':h=tr(`Uran → 2 energiceller, plutonium → 3 · ${fmt2(refTime(tl(t)))} s<br>`,`Uranium → 2 energy cells, plutonium → 3 · ${fmt2(refTime(tl(t)))} s<br>`)+(t.inp?tr(`Raffinerar ${RES[t.inp].n}`,`Refining ${RES[t.inp].n}`):t.q?tr(`Lämnar ut ${t.qn} energiceller`,`Releasing ${t.qn} energy cells`):tr('Väntar på uran eller plutonium','Waiting for uranium or plutonium'))+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'seller':h=tr(`Betalar ${Math.round(priceMult()*100)} % av grundpriset`,`Pays ${Math.round(priceMult()*100)} % of the base price`)+(S.unl.crafter4?tr('<br>Tar inte emot radioaktivt avfall','<br>Doesn\'t accept radioactive waste'):'');break;
     case 'disposal':h=tr(`Har tagit hand om ${t.n||0} avfall sedan spelet startade`,`Has disposed of ${t.n||0} waste since the game started`);break;
-    case 'centrifuge':h=tr(`3 uran → anrikat uran, 3 plutonium → renat plutonium · ${fmt2(centTime(tl(t)))} s<br><span class="${t.energy>=1?'ok':'warn'}">${t.energy}/10 energi</span> · har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:''}`,`3 uranium → enriched uranium, 3 plutonium → purified plutonium · ${fmt2(centTime(tl(t)))} s<br><span class="${t.energy>=1?'ok':'warn'}">${t.energy}/10 energy</span> · has ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:''}`)+(t.energy<1&&t.cb.length===3?tr('<br><span class="warn">Behöver energiceller för att köra</span>','<br><span class="warn">Needs energy cells to run</span>'):'')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
+    case 'centrifuge':h=tr(`3 uran → anrikat uran, 3 plutonium → renat plutonium · ${fmt2(centTime(tl(t)))} s<br><span class="${t.energy>=1?'ok':'warn'}">${t.energy}/30 energi</span> · har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:''}`,`3 uranium → enriched uranium, 3 plutonium → purified plutonium · ${fmt2(centTime(tl(t)))} s<br><span class="${t.energy>=1?'ok':'warn'}">${t.energy}/30 energy</span> · has ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:''}`)+(t.energy<1&&t.cb.length===3?tr('<br><span class="warn">Behöver energiceller för att köra</span>','<br><span class="warn">Needs energy cells to run</span>'):'')+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'recycler':h=tr(`4 avfall → 1 plutonium · ${fmt2(centTime(tl(t)))} s<br>Har ${t.cb.length}/4 avfall`,`4 waste → 1 plutonium · ${fmt2(centTime(tl(t)))} s<br>Has ${t.cb.length}/4 waste`)+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'wire':case 'furnace':case 'cutter':case 'press':{const f=M[t.t].form;h=tr(`Råvara → ${FORMS[f].nm('…')} · ${fmt2(mTime(t.t,tl(t)))} s<br>`,`Material → ${FORMS[f].nm('…')} · ${fmt2(mTime(t.t,tl(t)))} s<br>`)+(t.inp?tr(`Gör ${RES[t.inp+'_'+f].n}`,`Makes ${RES[t.inp+'_'+f].n}`):tr('Väntar på en råvara','Waiting for a material'))+(blockMsg(t)?'<br>'+blockMsg(t):'');break;}
     case 'cable':h=tr(`3 trådar → kabel · ${fmt2(mTime('cable',tl(t)))} s<br>Har ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:'trådar'}`,`3 wires → cable · ${fmt2(mTime('cable',tl(t)))} s<br>Has ${t.cb.length}/3 ${t.cb.length?RES[t.cb[0]].n:'wires'}`)+(blockMsg(t)?'<br>'+blockMsg(t):'');break;
     case 'crafter1':case 'crafter2':case 'crafter3':case 'crafter4':case 'crafter5':{const r=c.rec&&RECMAP[c.rec];if(!r){h=tr('Ingen ritning vald','No blueprint chosen');break;}
-      h=`<b>${r.n}</b> · ${cash(r.v*priceMult())}`;if(M[t.t].rad)h+=tr(`<div class="ing"><img alt="" src="${itemIcon('energy')}"><span class="${t.energy>=r.en?'ok':''}">${t.energy}/20</span> energi (ritningen kräver ${r.en})</div>`,`<div class="ing"><img alt="" src="${itemIcon('energy')}"><span class="${t.energy>=r.en?'ok':''}">${t.energy}/20</span> energy (blueprint needs ${r.en})</div>`);for(const k in r.in){const have=t.buf[k]||0;h+=`<div class="ing"><img alt="" src="${itemIcon(k)}"><span class="${have>=r.in[k]?'ok':''}">${have}/${r.in[k]}</span> ${RES[k].n}</div>`;}
+      h=`<b>${r.n}</b> · ${cash(r.v*priceMult())}`;if(M[t.t].rad)h+=tr(`<div class="ing"><img alt="" src="${itemIcon('energy')}"><span class="${t.energy>=r.en?'ok':''}">${t.energy}/50</span> energi (ritningen kräver ${r.en})</div>`,`<div class="ing"><img alt="" src="${itemIcon('energy')}"><span class="${t.energy>=r.en?'ok':''}">${t.energy}/50</span> energy (blueprint needs ${r.en})</div>`);for(const k in r.in){const have=t.buf[k]||0;h+=`<div class="ing"><img alt="" src="${itemIcon(k)}"><span class="${have>=r.in[k]?'ok':''}">${have}/${r.in[k]}</span> ${RES[k].n}</div>`;}
       if(t.wrong&&time-t.wrongAt<1.5)h+=tr(`<div class="warn">${RES[t.wrong].n} ingår inte i ritningen och står i vägen. Töm bandet eller maskinen före.</div>`,`<div class="warn">${RES[t.wrong].n} isn't in the blueprint and is in the way. Empty the belt or the machine before it.</div>`);
       if(r.tier>=4)h+=tr('<div class="spdtxt">Varje produkt ger också 1 radioaktivt avfall ut genom utgången.</div>','<div class="spdtxt">Each product also puts out 1 radioactive waste through the output.</div>');
       h+=t.busy?tr('Bygger…','Building…'):blockMsg(t)?blockMsg(t)+(!t.q&&t.wq?tr('<br><span class="warn">Sortera ut avfallet med en väljare till ett slutförvar eller en återvinnare.</span>','<br><span class="warn">Sort the waste out with a filter to a waste disposal or a recycler.</span>'):''):(t.q||t.wq?tr('Lämnar ut','Releasing'):tr('Väntar på delar','Waiting for parts'));break;}
     case 'splitter':h=tr('Vänster, höger, vänster, höger…','Left, right, left, right…');break;
     case 'lsplit':h=tr('Fram, vänster, fram, vänster…','Forward, left, forward, left…');break;
     case 'rsplit':h=tr('Fram, höger, fram, höger…','Forward, right, forward, right…');break;
-    case 'asplit':h=tr(`Vänster ${c.ratio[0]} : fram ${c.ratio[1]} : höger ${c.ratio[2]}`,`Left ${c.ratio[0]} : forward ${c.ratio[1]} : right ${c.ratio[2]}`);break;
+    case 'asplit':h=tr(`Vänster ${c.ratio[0]} : fram ${c.ratio[1]} : höger ${c.ratio[2]}`,`Left ${c.ratio[0]} : forward ${c.ratio[1]} : right ${c.ratio[2]}`);
+      if(c.rules){const nm=[tr('vänster','left'),tr('fram','forward'),tr('höger','right')];h+='<br>'+Object.entries(c.rules).map(([k,i])=>RES[k]?RES[k].n+' → '+nm[i]:'').filter(Boolean).join('<br>');}break;
     case 'lsel':case 'rsel':h=tr(`${RES[c.res].n} åt ${t.t==='lsel'?'vänster':'höger'}, resten fram`,`${RES[c.res].n} goes ${t.t==='lsel'?'left':'right'}, the rest forward`);break;
     case 'msel':h=tr(`${RES[c.l].n} åt vänster<br>${RES[c.r].n} åt höger`,`${RES[c.l].n} goes left<br>${RES[c.r].n} goes right`);break;
     case 'tin':{const n=[...t.line.grid.values()].filter(o=>o.t==='tout'&&o.cfg.ch===c.ch).length;h=tr(`Skickar till ${n} transportör ut med nummer ${c.ch}`,`Sends to ${n} × transporter out, number ${c.ch}`)+(n?'':tr('<br><span class="warn">Ingen mottagare</span>','<br><span class="warn">No receiver</span>'));break;}
@@ -980,6 +990,7 @@ function inspClick(e){
   else if(a==='rec'){if(t.cfg.rec!==v){t.cfg.rec=v;t.buf={};t.busy=false;lastRec=v;}}
   else if(a==='res')t.cfg.res=v;else if(a==='ml')t.cfg.l=v;else if(a==='mr')t.cfg.r=v;
   else if(a==='rp')t.cfg.ratio[+v]=Math.min(9,t.cfg.ratio[+v]+1);else if(a==='rm')t.cfg.ratio[+v]=Math.max(0,t.cfg.ratio[+v]-1);
+  else if(a==='rulec'){const ru=t.cfg.rules||(t.cfg.rules={});const n=ru[v]==null?0:ru[v]+1;if(n>2)delete ru[v];else ru[v]=n;if(!Object.keys(ru).length)delete t.cfg.rules;}
   else if(a==='ch')t.cfg.ch=+v;
   else if(a==='spdm'||a==='spdp'){const c0=tl(t);setSpd(t,a==='spdp'?Math.floor(c0+1e-6)+1:Math.ceil(c0-1e-6)-1);}
   else if(a==='spdset')applyTypedSpeed(t);
