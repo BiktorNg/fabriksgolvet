@@ -250,7 +250,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v4.2</div>
+  <div id="ver">v4.3</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -1273,7 +1273,7 @@ function tutDraw(g){
     if(o.t===gt.t&&!tmatch(o,gt)){g.save();g.translate(gt.x*TS+TS/2,gt.y*TS+TS/2);g.rotate((gt.d||0)*Math.PI/2);g.fillStyle=`rgba(255,204,51,${pulse})`;g.beginPath();g.moveTo(TS/2-3,0);g.lineTo(TS/2-11,-6);g.lineTo(TS/2-11,6);g.closePath();g.fill();g.restore();}}
 }
 /* ============ INPUT ============ */
-function tileFromEvent(e){const r=canvas.getBoundingClientRect();const wx=(e.clientX-r.left-W/2)/cam.z+cam.x,wy=(e.clientY-r.top-H/2)/cam.z+cam.y;return[Math.floor(wx/TS),Math.floor(wy/TS)];}
+function tileFromEvent(e){const r=canvas.getBoundingClientRect();if(Math.abs(r.width-W)>.5||Math.abs(r.height-H)>.5)resize();const wx=(e.clientX-r.left-W/2)/cam.z+cam.x,wy=(e.clientY-r.top-H/2)/cam.z+cam.y;return[Math.floor(wx/TS),Math.floor(wy/TS)];}
 document.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('pointerdown',e=>{
   if(e.button!==0)return;canvas.setPointerCapture(e.pointerId);const[tx,ty]=tileFromEvent(e);warned=false;beginEdit();
@@ -1679,7 +1679,7 @@ function start(data){
   if(d&&d.lines){loadData(d);centerCam();if(S.nc)openPanel('start');else if(!(data&&data.save))applyOffline((Date.now()-(d.t||Date.now()))/1000,d.rate||0);}
   else{newGame(false);S.nc=1;save();openPanel('start');}
   if(restored)setTimeout(()=>toast(tr('Övningen avbröts. Din riktiga fabrik är tillbaka.','Practice cancelled. Your real factory is back.'),true),800);
-  window.addEventListener('resize',resize);
+  window.addEventListener('resize',resize);if(window.ResizeObserver)new ResizeObserver(()=>{const r=stage.getBoundingClientRect();if(Math.abs(r.width-W)>.5||Math.abs(r.height-H)>.5){resize();if(typeof render==='function')render();}}).observe(stage);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
   requestAnimationFrame(frame);
 }
