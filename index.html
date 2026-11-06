@@ -105,7 +105,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:22px;background:var(--gold
 input[type=range]:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 #setbtn{padding:5px 7px}#setbtn img{width:18px;height:18px;image-rendering:pixelated;display:block}
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#101114}
-#floor{display:block;position:absolute;inset:0;cursor:crosshair;touch-action:none;image-rendering:pixelated}
+#floor{display:block;position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none;image-rendering:pixelated}
 .pxbox{background:var(--panel);box-shadow:inset 2px 2px 0 var(--hi),inset -2px -2px 0 var(--lo),0 0 0 3px var(--edge),6px 6px 0 rgba(0,0,0,.45)}
 #zoom{position:absolute;left:max(14px,env(safe-area-inset-left,0px));bottom:56px;display:flex;flex-direction:column;gap:8px;align-items:center}
 #zoom button{width:40px;height:38px;padding:0;font-size:24px;line-height:1;font-weight:700}
@@ -250,7 +250,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v4.3</div>
+  <div id="ver">v4.4</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -785,6 +785,7 @@ function render(){
   g.font='22px VT323,monospace';g.textAlign='center';g.textBaseline='alphabetic';g.lineJoin='round';g.lineWidth=4;g.strokeStyle='#000';
   for(const f of floats){g.globalAlpha=Math.max(0,Math.min(1,f.life*1.5));g.strokeText(f.txt,f.x,f.y);g.fillStyle='#9be36d';g.fillText(f.txt,f.x,f.y);}
   g.globalAlpha=1;
+  const dbgM=window.__afDbgM;if(dbgM){const r=canvas.getBoundingClientRect(),mx=dbgM.clientX-r.left,my=dbgM.clientY-r.top;g.setTransform(DPR,0,0,DPR,0,0);g.strokeStyle='#ff2d2d';g.lineWidth=2;g.beginPath();g.moveTo(mx-10,my);g.lineTo(mx+10,my);g.moveTo(mx,my-10);g.lineTo(mx,my+10);g.stroke();}
 }
 
 /* ============ UI ============ */
@@ -1679,7 +1680,21 @@ function start(data){
   if(d&&d.lines){loadData(d);centerCam();if(S.nc)openPanel('start');else if(!(data&&data.save))applyOffline((Date.now()-(d.t||Date.now()))/1000,d.rate||0);}
   else{newGame(false);S.nc=1;save();openPanel('start');}
   if(restored)setTimeout(()=>toast(tr('Övningen avbröts. Din riktiga fabrik är tillbaka.','Practice cancelled. Your real factory is back.'),true),800);
-  window.addEventListener('resize',resize);if(window.ResizeObserver)new ResizeObserver(()=>{const r=stage.getBoundingClientRect();if(Math.abs(r.width-W)>.5||Math.abs(r.height-H)>.5){resize();if(typeof render==='function')render();}}).observe(stage);
+  window.addEventListener('resize',resize);
+var DBG=/[?&]debug/.test(location.search),dbgM=null;
+if(DBG){const dd=document.createElement('div');dd.style.cssText='position:fixed;left:4px;bottom:4px;z-index:999;background:rgba(0,0,0,.85);color:#7f7;font:12px monospace;padding:6px 8px;pointer-events:none;white-space:pre';document.body.appendChild(dd);
+  const dot=document.createElement('div');dot.style.cssText='position:fixed;z-index:999;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#2ef;pointer-events:none';document.body.appendChild(dot);
+  addEventListener('pointermove',e=>{dbgM=e;window.__afDbgM=e;dot.style.left=e.clientX+'px';dot.style.top=e.clientY+'px';},true);
+  const f=v=>Math.round(v*100)/100;
+  setInterval(()=>{const r=canvas.getBoundingClientRect(),st=stage.getBoundingClientRect(),vv=window.visualViewport,e=dbgM,cs=getComputedStyle(document.documentElement);
+    dd.textContent=[document.getElementById('ver').textContent+'  '+navigator.userAgent.slice(0,90),
+      'inner '+innerWidth+'x'+innerHeight+'  outer '+outerWidth+'x'+outerHeight+'  dpr '+devicePixelRatio+'  screen '+screen.width+'x'+screen.height,
+      vv?'visualViewport '+f(vv.width)+'x'+f(vv.height)+' scale '+vv.scale+' off '+f(vv.offsetLeft)+','+f(vv.offsetTop):'no vv',
+      'stage '+f(st.left)+','+f(st.top)+' '+f(st.width)+'x'+f(st.height),
+      'canvas '+f(r.left)+','+f(r.top)+' '+f(r.width)+'x'+f(r.height)+'  backing '+canvas.width+'x'+canvas.height,
+      'game W,H '+f(W)+'x'+f(H)+'  DPR '+DPR+'  cam '+f(cam.x)+','+f(cam.y)+' z'+f(cam.z),
+      e?'client '+f(e.clientX)+','+f(e.clientY)+'  offset '+f(e.offsetX)+','+f(e.offsetY)+'  page '+f(e.pageX)+','+f(e.pageY):'move the mouse over the floor',
+      'tile '+hover+'  zoom(css) '+cs.zoom+'  scroll '+scrollX+','+scrollY].join('\n');},250);}if(window.ResizeObserver)new ResizeObserver(()=>{const r=stage.getBoundingClientRect();if(Math.abs(r.width-W)>.5||Math.abs(r.height-H)>.5){resize();if(typeof render==='function')render();}}).observe(stage);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
   requestAnimationFrame(frame);
 }
