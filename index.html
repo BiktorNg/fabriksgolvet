@@ -263,7 +263,7 @@ button:disabled{color:#bdb6a5;opacity:.62}
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v4.5</div>
+  <div id="ver">v4.6</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -569,7 +569,7 @@ function toolIcon(n){const s=mkSpr(g=>{if(n==='select')drawMap(g,["k.......","kw
 
 /* ============ TILES ============ */
 function mk(t,x,y,d,cfg,paid,line){
-  const o={t,x,y,d,cfg:cfg?JSON.parse(JSON.stringify(cfg)):{},paid:paid||0,line,its:[],qw:0,qn:0,wq:0,energy:0,inp:null,q:null,timer:0,buf:{},cb:[],busy:false,hold:null,idx:0,tq:[],oq:[]};
+  const o={t,x,y,d,cfg:cfg?JSON.parse(JSON.stringify(cfg)):{},paid:paid||0,line,its:[],qw:0,qn:0,wq:0,energy:0,inp:null,q:null,timer:0,buf:{},cb:[],busy:false,hold:null,sq:[],idx:0,tq:[],oq:[]};
   if(t==='starter'&&!o.cfg.res)o.cfg.res=lastStarterRes;
   if(t==='radstarter'&&!o.cfg.res)o.cfg.res='uranium';
   if((t==='lsel'||t==='rsel')&&!o.cfg.res)o.cfg.res='copper';
@@ -597,14 +597,15 @@ function place(x,y,t,d,silent,cfg){
   if(t.startsWith('crafter')&&!silent&&!cfg)openInspector(o);
   return true;
 }
-function clearTile(t){let n=t.its.length+(t.wq||0)+(t.q?(t.qn||1):0)+(t.inp?1:0)+(t.hold?1:0)+t.cb.length+t.tq.length+t.oq.length;for(const k in t.buf)n+=t.buf[k];
-  t.its=[];t.q=null;t.qn=0;t.wq=0;t.qw=0;t.inp=null;t.hold=null;t.buf={};t.cb=[];t.busy=false;t.timer=0;t.tq=[];t.oq=[];t.wrong=null;return n;}
+function clearTile(t){let n=t.its.length+(t.wq||0)+(t.q?(t.qn||1):0)+(t.inp?1:0)+(t.hold?1:0)+(t.sq?t.sq.length:0)+t.cb.length+t.tq.length+t.oq.length;for(const k in t.buf)n+=t.buf[k];
+  t.its=[];t.q=null;t.qn=0;t.wq=0;t.qw=0;t.inp=null;t.hold=null;t.sq=[];t.buf={};t.cb=[];t.busy=false;t.timer=0;t.tq=[];t.oq=[];t.wrong=null;return n;}
 function clearTiles(ts,label){let n=0;for(const t of ts)n+=clearTile(t);toast(n?label+tr(': tog bort ',': removed ')+n+(n===1?tr(' sak',' item'):tr(' saker',' items')):tr('Inget att tömma','Nothing to empty'),!!n);}
 function removeAt(x,y){const t=tileAt(x,y);if(!t)return;sfx('remove');S.money+=t.paid;L().grid.delete(key(x,y));if(sel===t)closeInspector();}
 const dirOf=(sx,sy)=>sx===1?0:sy===1?1:sx===-1?2:3;
 
 /* ============ SIMULATION ============ */
 const isProc=t=>PROC.includes(t);
+function selOut(t,x){if(t.t==='lsel')return x===t.cfg.res?(t.d+3)%4:t.d;if(t.t==='rsel')return x===t.cfg.res?(t.d+1)%4:t.d;if(x===t.cfg.l)return (t.d+3)%4;if(x===t.cfg.r)return (t.d+1)%4;return t.d;}
 function splitIn(n,from){if(from===(n.d+2)%4)return true;if(n.t==='lsel')return from===(n.d+1)%4;if(n.t==='rsel')return from===(n.d+3)%4;return false;}
 function accept(t,item,travel){
   const from=(travel+2)%4,back=(t.d+2)%4;
@@ -621,8 +622,9 @@ function accept(t,item,travel){
       if(item==='energy'&&M[t.t].rad){if(t.energy>=50)return false;t.energy++;return true;}
       if(!t.cfg.rec||RECMAP[t.cfg.rec].tier>M[t.t].mk)return false;const need=RECMAP[t.cfg.rec].in[item];
       if(!need){t.wrong=item;t.wrongAt=time;return false;}if((t.buf[item]||0)>=need*6)return false;t.buf[item]=(t.buf[item]||0)+1;return true;}
-    case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':case 'lsel':case 'rsel':case 'msel':
+    case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':
       if(!splitIn(t,from)||t.hold)return false;t.hold=item;t.timer=0;return true;
+    case 'lsel':case 'rsel':case 'msel':{if(!splitIn(t,from))return false;const q=t.sq||(t.sq=[]);if(q.length>=200)return false;let c=0;for(const a of q)if(a===item&&++c>=60)return false;q.push(item);return true;}
     case 'centrifuge':if(t.d===from)return false;if(item==='energy'){if(t.energy>=30)return false;t.energy++;return true;}
       if(RES[item].kind!=='rad'||t.busy||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
     case 'recycler':if(t.d===from||item!=='waste'||t.busy||t.cb.length>=4)return false;t.cb.push(item);return true;
@@ -679,10 +681,10 @@ function stepLine(line,dt){
           else{o=[];const[a,b,c]=t.cfg.ratio;for(let i=0;i<a;i++)o.push(l);for(let i=0;i<b;i++)o.push(f);for(let i=0;i<c;i++)o.push(r);if(!o.length)o=[f];}
           if(o)routeCycle(t,o);}}break;
       case 'lsel':case 'rsel':case 'msel':
-        if(t.hold){t.timer+=dt;if(t.timer>=.1){let o=t.d;
-          if(t.t==='lsel'&&t.hold===t.cfg.res)o=(t.d+3)%4;else if(t.t==='rsel'&&t.hold===t.cfg.res)o=(t.d+1)%4;
-          else if(t.t==='msel'){if(t.hold===t.cfg.l)o=(t.d+3)%4;else if(t.hold===t.cfg.r)o=(t.d+1)%4;}
-          if(push(t,t.hold,o))t.hold=null;}}break;
+        {if(t.hold){(t.sq||(t.sq=[])).unshift(t.hold);t.hold=null;}const q=t.sq;
+        if(q&&q.length){t.timer+=dt;let it=0;while(t.timer>=.1&&it++<4){t.timer-=.1;const done=[];
+          for(let i=0;i<q.length&&done.length<3;i++){const x=q[i],o=selOut(t,x);if(done.includes(o))continue;done.push(o);if(push(t,x,o)){q.splice(i,1);i--;}}}}
+        else t.timer=0;}break;
       case 'tin':case 'atin':{
         for(const e of t.tq)e.age+=dt;
         if(t.tq.length&&t.tq[0].age>=1){const list=(t.t==='atin'?gOuts:outs).get(t.cfg.ch)||[];
@@ -749,6 +751,7 @@ function drawTile(g,t,live){
   }
   if(live&&t.cfg&&t.cfg.spd!=null&&UPK[t.t]&&tl(t)<lv(UPK[t.t])){P(g,x+5,y+5,K,8,7);P(g,x+6,y+6,'#7fd0ff',2,5);P(g,x+9,y+6,'#7fd0ff',2,5);}
   if(live&&t.hold)drawIt(g,t.hold,cx,cy,14);
+  if(live&&t.sq&&t.sq.length){drawIt(g,t.sq[0],cx,cy,14);if(t.sq.length>1){g.font='16px VT323,monospace';g.textAlign='right';g.textBaseline='alphabetic';g.lineWidth=3;g.strokeStyle='#000';const tx=t.sq.length>99?'99+':''+t.sq.length;g.strokeText(tx,x+TS-4,y+TS-4);g.fillStyle='#fff';g.fillText(tx,x+TS-4,y+TS-4);}}
   if(live&&(t.q||t.wq)){drawIt(g,t.q||'waste',cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);}
   if(live&&(t.t==='tout'||t.t==='atout')&&t.oq.length)drawIt(g,t.oq[0],cx+DIRS[t.d][0]*15,cy+DIRS[t.d][1]*15,14);
 }
@@ -986,8 +989,8 @@ function updateLive(){
     case 'rsplit':h=tr('Fram, höger, fram, höger…','Forward, right, forward, right…');break;
     case 'asplit':h=tr(`Vänster ${c.ratio[0]} : fram ${c.ratio[1]} : höger ${c.ratio[2]}`,`Left ${c.ratio[0]} : forward ${c.ratio[1]} : right ${c.ratio[2]}`);
       if(c.rules){const nm=[tr('vänster','left'),tr('fram','forward'),tr('höger','right')];h+='<br>'+Object.entries(c.rules).map(([k,i])=>RES[k]?RES[k].n+' → '+nm[i]:'').filter(Boolean).join('<br>');}break;
-    case 'lsel':case 'rsel':h=tr(`${RES[c.res].n} åt ${t.t==='lsel'?'vänster':'höger'}, resten fram`,`${RES[c.res].n} goes ${t.t==='lsel'?'left':'right'}, the rest forward`);break;
-    case 'msel':h=tr(`${RES[c.l].n} åt vänster<br>${RES[c.r].n} åt höger`,`${RES[c.l].n} goes left<br>${RES[c.r].n} goes right`);break;
+    case 'lsel':case 'rsel':h=tr(`${RES[c.res].n} åt ${t.t==='lsel'?'vänster':'höger'}, resten fram`,`${RES[c.res].n} goes ${t.t==='lsel'?'left':'right'}, the rest forward`)+tr(`<br>${(t.sq||[]).length}/200 saker i kön`,`<br>${(t.sq||[]).length}/200 items queued`);break;
+    case 'msel':h=tr(`${RES[c.l].n} åt vänster<br>${RES[c.r].n} åt höger`,`${RES[c.l].n} goes left<br>${RES[c.r].n} goes right`)+tr(`<br>${(t.sq||[]).length}/200 saker i kön`,`<br>${(t.sq||[]).length}/200 items queued`);break;
     case 'tin':{const n=[...t.line.grid.values()].filter(o=>o.t==='tout'&&o.cfg.ch===c.ch).length;h=tr(`Skickar till ${n} transportör ut med nummer ${c.ch}`,`Sends to ${n} × transporter out, number ${c.ch}`)+(n?'':tr('<br><span class="warn">Ingen mottagare</span>','<br><span class="warn">No receiver</span>'));break;}
     case 'tout':h=tr(`Tar emot från nummer ${c.ch}`,`Receives from number ${c.ch}`);break;
     case 'atin':{const ls=[];S.lines.forEach((l,i)=>{const n=[...l.grid.values()].filter(o=>o.t==='atout'&&o.cfg.ch===c.ch).length;if(n)ls.push(tr('linje ','line ')+(i+1)+(n>1?' ('+n+tr(' st)',')'):''));});h=tr(`Skickar till linjetransportör ut nummer ${c.ch}`,`Sends to line transporter out number ${c.ch}`)+(ls.length?tr('<br>Mottagare: ','<br>Receivers: ')+ls.join(', '):tr('<br><span class="warn">Ingen mottagare på någon linje</span>','<br><span class="warn">No receiver on any line</span>'));break;}
