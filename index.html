@@ -221,6 +221,19 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
 #areabar{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);padding:8px 10px;display:flex;gap:8px;align-items:center;white-space:nowrap}
 #ver{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:4px;font-family:var(--num);font-size:14px;color:var(--muted);opacity:.35;pointer-events:none;letter-spacing:.04em}
 #paused{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--head);font-size:56px;color:var(--gold);text-shadow:4px 4px 0 #000}
+
+/* --- clearer text (same pixel style) --- */
+:root{--muted:#cdc5b0}
+body{font-weight:500}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:#d8d0ba}
+.grp .gl,#order .oh b,.isec h4,.sheet h3,.tier,th,#achtoast b{font-family:var(--px);font-weight:700;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase}
+.sheet>p,.card p,.ach p,.ih p,.help dd,.help p,.help li,.card .meta,#hint{font-size:15px;font-weight:500;line-height:1.45}
+.card h4,.ach h4{font-weight:700}
+.tool .tn{font-size:12px;font-weight:600}
+kbd{font-size:12px}
+.num,.tool .tc,.tool .var,#order .om,.setrow span,#zoom .zl,.spdin input,.ratio b,.card .lvl,td.v,.achr,.achp,#achtoast em,.tutm{-webkit-text-stroke:.35px currentColor;paint-order:stroke fill}
+.tool .tc{font-size:19px}.tool .var{font-size:17px}#zoom .zl{font-size:17px}.achp,.tutm{font-size:18px}
+button:disabled{color:#bdb6a5;opacity:.62}
 </style>
 
 <header class="bar top">
@@ -250,7 +263,7 @@ textarea{width:100%;min-height:70px;font-family:monospace;font-size:12px;backgro
   <div id="achtoast" role="status"></div>
   <aside id="order" class="pxbox" hidden></aside>
   <aside id="tut" class="pxbox" hidden></aside>
-  <div id="ver">v4.4</div>
+  <div id="ver">v4.5</div>
   <aside id="insp" class="pxbox" hidden></aside>
   <div id="modal" hidden><div class="sheet pxbox" id="sheet"></div></div>
   <div id="toast"></div>
@@ -390,8 +403,8 @@ const M={
  lsplit:{n:tr('Vänsterdelare','Left splitter'),key:'0',unlock:12000,cost:800,d:tr('Tar emot bakifrån. Skickar varannan sak framåt och varannan åt vänster.','Accepts from the back. Sends every other item forward and every other item left.')},
  rsplit:{n:tr('Högerdelare','Right splitter'),key:'0',unlock:12000,cost:800,d:tr('Tar emot bakifrån. Skickar varannan sak framåt och varannan åt höger.','Accepts from the back. Sends every other item forward and every other item right.')},
  asplit:{n:tr('Avancerad delare','Advanced splitter'),key:'0',unlock:150000,cost:8000,d:tr('Delar mellan vänster, fram och höger i det förhållande du väljer. Du kan också välja vilka varor som alltid ska åt ett visst håll.','Splits between left, forward and right in the ratio you choose. You can also pick items that always go a certain way.')},
- lsel:{n:tr('Vänsterväljare','Left filter'),key:'F',unlock:20000,cost:1500,d:tr('Vald resurs går åt vänster. Allt annat går rakt fram.','The chosen item goes left. Everything else goes straight ahead.')},
- rsel:{n:tr('Högerväljare','Right filter'),key:'F',unlock:20000,cost:1500,d:tr('Vald resurs går åt höger. Allt annat går rakt fram.','The chosen item goes right. Everything else goes straight ahead.')},
+ lsel:{n:tr('Vänsterväljare','Left filter'),key:'F',unlock:20000,cost:1500,d:tr('Tar emot bakifrån och från höger. Vald resurs går åt vänster. Allt annat går rakt fram.','Accepts from the back and the right. The chosen item goes left. Everything else goes straight ahead.')},
+ rsel:{n:tr('Högerväljare','Right filter'),key:'F',unlock:20000,cost:1500,d:tr('Tar emot bakifrån och från vänster. Vald resurs går åt höger. Allt annat går rakt fram.','Accepts from the back and the left. The chosen item goes right. Everything else goes straight ahead.')},
  msel:{n:tr('Multiväljare','Multi filter'),key:'F',unlock:90000,cost:5000,d:tr('En vald resurs åt vänster, en annan åt höger, resten rakt fram.','One chosen item goes left, another goes right, the rest straight ahead.')},
  tin:{n:tr('Transportör in','Transporter in'),key:'G',unlock:400000,cost:25000,d:tr('Tar emot från alla håll och skickar sakerna till transportör ut med samma nummer på linjen.','Accepts from every side and sends the items to the transporter out with the same number on this line.')},
  tout:{n:tr('Transportör ut','Transporter out'),key:'G',unlock:400000,cost:25000,d:tr('Släpper ut saker från transportör in med samma nummer.','Releases items from the transporter in with the same number.')},
@@ -592,6 +605,7 @@ const dirOf=(sx,sy)=>sx===1?0:sy===1?1:sx===-1?2:3;
 
 /* ============ SIMULATION ============ */
 const isProc=t=>PROC.includes(t);
+function splitIn(n,from){if(from===(n.d+2)%4)return true;if(n.t==='lsel')return from===(n.d+1)%4;if(n.t==='rsel')return from===(n.d+3)%4;return false;}
 function accept(t,item,travel){
   const from=(travel+2)%4,back=(t.d+2)%4;
   switch(t.t){
@@ -608,7 +622,7 @@ function accept(t,item,travel){
       if(!t.cfg.rec||RECMAP[t.cfg.rec].tier>M[t.t].mk)return false;const need=RECMAP[t.cfg.rec].in[item];
       if(!need){t.wrong=item;t.wrongAt=time;return false;}if((t.buf[item]||0)>=need*6)return false;t.buf[item]=(t.buf[item]||0)+1;return true;}
     case 'splitter':case 'lsplit':case 'rsplit':case 'asplit':case 'lsel':case 'rsel':case 'msel':
-      if(from!==back||t.hold)return false;t.hold=item;t.timer=0;return true;
+      if(!splitIn(t,from)||t.hold)return false;t.hold=item;t.timer=0;return true;
     case 'centrifuge':if(t.d===from)return false;if(item==='energy'){if(t.energy>=30)return false;t.energy++;return true;}
       if(RES[item].kind!=='rad'||t.busy||t.cb.length>=3||(t.cb.length&&t.cb[0]!==item))return false;t.cb.push(item);return true;
     case 'recycler':if(t.d===from||item!=='waste'||t.busy||t.cb.length>=4)return false;t.cb.push(item);return true;
@@ -782,7 +796,7 @@ function render(){
     else if(tool==='demolish'){if(tileAt(hx,hy)){g.fillStyle='rgba(255,107,87,.3)';g.fillRect(hx*TS,hy*TS,TS,TS);}g.strokeStyle='#ff6b57';g.lineWidth=3;g.strokeRect(hx*TS+1.5,hy*TS+1.5,TS-3,TS-3);}
     else{g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=2;g.strokeRect(hx*TS+1,hy*TS+1,TS-2,TS-2);}
   }
-  g.font='22px VT323,monospace';g.textAlign='center';g.textBaseline='alphabetic';g.lineJoin='round';g.lineWidth=4;g.strokeStyle='#000';
+  g.font='26px VT323,monospace';g.textAlign='center';g.textBaseline='alphabetic';g.lineJoin='round';g.lineWidth=5;g.strokeStyle='#000';
   for(const f of floats){g.globalAlpha=Math.max(0,Math.min(1,f.life*1.5));g.strokeText(f.txt,f.x,f.y);g.fillStyle='#9be36d';g.fillText(f.txt,f.x,f.y);}
   g.globalAlpha=1;
   const dbgM=window.__afDbgM;if(dbgM){const r=canvas.getBoundingClientRect(),mx=dbgM.clientX-r.left,my=dbgM.clientY-r.top;g.setTransform(DPR,0,0,DPR,0,0);g.strokeStyle='#ff2d2d';g.lineWidth=2;g.beginPath();g.moveTo(mx-10,my);g.lineTo(mx+10,my);g.moveTo(mx,my-10);g.lineTo(mx,my+10);g.stroke();}
@@ -979,7 +993,7 @@ function updateLive(){
     case 'atin':{const ls=[];S.lines.forEach((l,i)=>{const n=[...l.grid.values()].filter(o=>o.t==='atout'&&o.cfg.ch===c.ch).length;if(n)ls.push(tr('linje ','line ')+(i+1)+(n>1?' ('+n+tr(' st)',')'):''));});h=tr(`Skickar till linjetransportör ut nummer ${c.ch}`,`Sends to line transporter out number ${c.ch}`)+(ls.length?tr('<br>Mottagare: ','<br>Receivers: ')+ls.join(', '):tr('<br><span class="warn">Ingen mottagare på någon linje</span>','<br><span class="warn">No receiver on any line</span>'));break;}
     case 'atout':{const ls=[];S.lines.forEach((l,i)=>{if([...l.grid.values()].some(o=>o.t==='atin'&&o.cfg.ch===c.ch))ls.push(tr('linje ','line ')+(i+1));});h=tr(`Tar emot från linjetransportör in nummer ${c.ch}`,`Receives from line transporter in number ${c.ch}`)+(ls.length?tr('<br>Avsändare: ','<br>Senders: ')+ls.join(', '):tr('<br><span class="warn">Ingen avsändare än</span>','<br><span class="warn">No sender yet</span>'));break;}
     case 'roller':{h=tr(`${fmt2(beltSpeed(tl(t)))} rutor/s · ${t.its.length} saker`,`${fmt2(beltSpeed(tl(t)))} tiles/s · items: ${t.its.length}`);const stuck=t.its.filter(a=>a.prog>=1);if(stuck.length){const n=nbr(t,t.d);
-      h+='<br><span class="warn">'+(!n?tr('Bandet slutar här. Inget tar emot.','The belt ends here. Nothing accepts.'):['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&n.d!==t.d?M[n.t].n+tr(' tar bara emot bakifrån.',' only accepts from the back.'):n.t==='roller'&&(n.d+2)%4===t.d?tr('Nästa band pekar tillbaka hit.','The next belt points back here.'):intoFront(t,n)?M[n.t].n+tr(' har sin utgång (gul-svart kant) mot bandet och tar inte emot därifrån. Vrid den med R.',' has its output (yellow-black edge) facing the belt and won\'t accept from it. Rotate it with R.'):stuck[0].item==='waste'&&n.t!=='disposal'&&n.t!=='recycler'?M[n.t].n+tr(' tar inte emot radioaktivt avfall. Skicka det till ett slutförvar eller en återvinnare.',' doesn\'t accept radioactive waste. Send it to a waste disposal or a recycler.'):M[n.t].n+tr(' tar inte emot ',' doesn\'t accept ')+RES[stuck[0].item].n+tr(' just nu.',' right now.'))+'</span>';}break;}
+      h+='<br><span class="warn">'+(!n?tr('Bandet slutar här. Inget tar emot.','The belt ends here. Nothing accepts.'):['splitter','lsplit','rsplit','asplit','lsel','rsel','msel'].includes(n.t)&&!splitIn(n,(t.d+2)%4)?M[n.t].n+(n.t==='lsel'||n.t==='rsel'?tr(' tar inte emot från det här hållet.'," doesn't accept from this side."):tr(' tar bara emot bakifrån.',' only accepts from the back.')):n.t==='roller'&&(n.d+2)%4===t.d?tr('Nästa band pekar tillbaka hit.','The next belt points back here.'):intoFront(t,n)?M[n.t].n+tr(' har sin utgång (gul-svart kant) mot bandet och tar inte emot därifrån. Vrid den med R.',' has its output (yellow-black edge) facing the belt and won\'t accept from it. Rotate it with R.'):stuck[0].item==='waste'&&n.t!=='disposal'&&n.t!=='recycler'?M[n.t].n+tr(' tar inte emot radioaktivt avfall. Skicka det till ett slutförvar eller en återvinnare.',' doesn\'t accept radioactive waste. Send it to a waste disposal or a recycler.'):M[n.t].n+tr(' tar inte emot ',' doesn\'t accept ')+RES[stuck[0].item].n+tr(' just nu.',' right now.'))+'</span>';}break;}
   }
   el.innerHTML=h;
 }
@@ -1567,7 +1581,7 @@ function never(n,item,travel){ // n can never take this item from this side
   if(n.t==='seller')return item==='waste';
   if(n.t==='disposal')return item!=='waste';
   if(n.t==='tin'||n.t==='atin')return false;
-  if(SPLITS.includes(n.t))return from!==(n.d+2)%4;
+  if(SPLITS.includes(n.t))return !splitIn(n,from);
   if(n.d===from)return true;
   switch(n.t){
     case 'wire':case 'furnace':case 'cutter':case 'press':return R.kind!=='raw';
@@ -1611,7 +1625,7 @@ function drawGraph(){
   const Hs=S.hist||{s:[],l:[]},R={m10:[Hs.s,60,'−10 min'],h1:[Hs.s,360,'−1 h'],d1:[Hs.l,288,'−24 h']}[graphRange];
   const data=R[0].slice(-R[1]).concat([Math.round(currentRate())]),N=R[1]+1;
   const pl=64,pr=8,pt=10,pb=20,gw=w-pl-pr,gh=h-pt-pb,max=Math.max(10,...data)*1.12;
-  g.font='16px VT323,monospace';g.textBaseline='middle';
+  g.font='600 13px "Pixelify Sans",monospace';g.textBaseline='middle';
   for(let i=0;i<=4;i++){const y=Math.round(pt+gh*(1-i/4));g.fillStyle='#2f333a';g.fillRect(pl,y,gw,1);g.fillStyle='#a8a190';g.textAlign='right';g.fillText(SV?fmtS(max*i/4)+' kr':'$'+fmtS(max*i/4),pl-6,y);}
   g.textAlign='left';g.fillText(R[2],pl,h-8);g.textAlign='right';g.fillText(tr('nu','now'),pl+gw,h-8);
   if(data.length<2){g.textAlign='center';g.fillText(tr('Samlar data… en punkt var 10:e sekund','Collecting data… one point every 10 seconds'),pl+gw/2,pt+gh/2);return;}
